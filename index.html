@@ -8,8 +8,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>OPERIX | Employee Space</title>
 
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/MindBreakOps/LX-Permits/main/hr.png">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/MindBreakOps/LX-Permits/main/hro.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════════════════
@@ -257,7 +257,7 @@ input[type="file"].form-control { padding: 10px 14px; font-size: 12px; }
 	  
 	  <div class="card">
 		<div class="form-group">
-		  <label class="form-label">Request Type</label>
+		  <label class="form-label">Type</label>
 		  <select id="req-type" class="form-control" onchange="toggleReqFields()">
 			<option value="Annual Leave (PTO)">Annual Leave (PTO)</option>
 			<option value="Sick Leave">Sick Leave</option>
@@ -381,14 +381,11 @@ input[type="file"].form-control { padding: 10px 14px; font-size: 12px; }
 </div>
 
 <script>
-if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
-	location.replace(`https:${location.href.substring(location.protocol.length)}`);
-}
   // ==========================================
   // PWA & CONFIG
   // ==========================================
   if ('serviceWorker' in navigator) {
-	window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(e => console.log('SW Error')); });
+	window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(e => console.log('SW Error')); });
   }
 
   const SUPABASE_URL  = 'https://lzobdqlbsxjlupyewdqq.supabase.co';
@@ -561,7 +558,7 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
   }
 
   // ==========================================
-  // INIT APP
+  // INIT APP & PROFILE LOAD
   // ==========================================
   async function initApp() {
 	if (!currentUser || !localStorage.getItem('operix_jwt')) { performLogout(); return; }
@@ -802,15 +799,19 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
 	  const dailyRate = grossSalary > 0 ? (grossSalary / 30) : 133; 
 	  const minuteRate = dailyRate / (8 * 60);
 
-	  const attData = await sbFetch(`operix_attendance?employee=eq.${encodeURIComponent(currentUser.name)}&order=submitted_at.desc`).catch(() => []);
-	  if(!attData || attData.length === 0) {
+	  let attData = await sbFetch(`operix_attendance?employee=eq.${encodeURIComponent(currentUser.name)}&order=submitted_at.desc`).catch(() => []);
+	  
+	  // Filter out tasks or other unwanted things, ensure valid array
+	  if(!Array.isArray(attData)) attData = [];
+
+	  if(attData.length === 0) {
 		  document.getElementById('payslip-list').innerHTML = '<div style="padding:16px; text-align:center; color:var(--text-muted); font-size:12px;">No attendance records to calculate payroll.</div>';
 		  return;
 	  }
 
 	  const monthlyData = {};
 	  attData.forEach(r => {
-		  if(r.type === 'Check-In') {
+		  if(r.type === 'Check-In' && r.submitted_at) {
 			  const date = new Date(r.submitted_at);
 			  const monthKey = date.toLocaleString('default', { month: 'long', year: 'numeric' });
 			  
@@ -860,6 +861,8 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
 			</div>
 		  </div>`;
 	  });
+	  
+	  if(html === '') html = '<div style="padding:16px; text-align:center; color:var(--text-muted); font-size:12px;">No valid logs found.</div>';
 	  document.getElementById('payslip-list').innerHTML = html;
 	} catch(e) { document.getElementById('payslip-list').innerHTML = '<div style="padding:16px; text-align:center; color:var(--text-muted); font-size:12px;">Error calculating payroll.</div>'; }
   }
@@ -893,7 +896,7 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
 	} else {
 	  start = document.getElementById('req-start').value;
 	  end = document.getElementById('req-end').value;
-	  if(!start) return showToast("Please provide start date.", "error");
+	  if(!start) return showToast("Please provide a start date.", "error");
 	}
 	
 	const btn = document.getElementById('btn-submit-req');
@@ -902,7 +905,7 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
 	try {
 	  // Handle Optional Attachment via GAS
 	  let attachmentUrl = null;
-	  if (fileInput.files.length > 0) {
+	  if (fileInput && fileInput.files.length > 0) {
 		const file = fileInput.files[0];
 		const base64 = await new Promise(resolve => {
 		  const reader = new FileReader();
@@ -942,14 +945,17 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
 
   async function loadRequestsData() {
 	try {
-	  const [genReqs, leaveReqs] = await Promise.all([
+	  let [genReqs, leaveReqs] = await Promise.all([
 		sbFetch(`operix_requests?employee_email=eq.${encodeURIComponent(currentUser.email)}&order=created_at.desc`).catch(()=>[]),
 		sbFetch(`operix_hr_leaves?employee_email=eq.${encodeURIComponent(currentUser.email)}&order=created_at.desc`).catch(()=>[])
 	  ]);
 	  
+	  if(!Array.isArray(genReqs)) genReqs = [];
+	  if(!Array.isArray(leaveReqs)) leaveReqs = [];
+	  
 	  const allReqs = [
-		...(Array.isArray(genReqs)?genReqs:[]).map(r=>({...r})),
-		...(Array.isArray(leaveReqs)?leaveReqs:[]).map(r=>({type:r.leave_type, details:r.manager_notes||'', status:r.status, created_at:r.created_at}))
+		...genReqs.map(r=>({...r})),
+		...leaveReqs.map(r=>({type:r.leave_type, details:r.manager_notes||'', status:r.status, created_at:r.created_at}))
 	  ].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
 
 	  let html = '';
@@ -995,7 +1001,7 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
 	
 	const avatar = document.getElementById('prof-av2');
 	const oldHtml = avatar.innerHTML;
-	avatar.innerHTML = '<div style="font-size:10px; color:#fff;">...</div>'; // simple loading visual
+	avatar.innerHTML = '<div style="font-size:10px; color:#fff;">...</div>'; 
 
 	const reader = new FileReader();
 	reader.onload = async function(ev) {
@@ -1024,7 +1030,7 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
 	reader.readAsDataURL(file);
   }
 
-  // --- Real Notifications from tasks & requests ---
+  // --- Real Notifications from tasks ---
   function toggleNotifications() {
 	const el = document.getElementById('notif-modal');
 	el.style.display = el.style.display === 'flex' ? 'none' : 'flex';
@@ -1032,25 +1038,29 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
 
   async function loadNotifications() {
 	try {
-	  const tasks = await sbFetch(`operix_tasks?assigned_to=eq.${encodeURIComponent(currentUser.email)}&status=neq.Completed`).catch(()=>[]);
-	  let html = '';
-	  let badgeCount = 0;
+	  // Find tasks assigned to this employee (by email or name) that are not completed
+	  let tasks = await sbFetch(`operix_tasks?select=*`).catch(()=>[]);
+	  if (!Array.isArray(tasks)) tasks = [];
+	  
+	  const myTasks = tasks.filter(t => 
+		(t.assigned_to === currentUser.email || t.assigned_to === currentUser.name) && 
+		t.status !== 'Completed' && t.status !== 'Done'
+	  );
 
-	  if(Array.isArray(tasks) && tasks.length > 0) {
-		badgeCount += tasks.length;
-		tasks.forEach(t => {
+	  let html = '';
+	  if(myTasks.length > 0) {
+		document.getElementById('notif-badge').style.display = 'block';
+		myTasks.forEach(t => {
 		  html += `<div class="list-item" style="background:var(--primary-light); padding:12px; border-radius:8px; margin-bottom:8px; border:none;">
 			<div><div class="list-title" style="color:var(--primary);">Task: ${t.title || 'Assignment'}</div>
 			<div class="list-sub">Due: ${t.due_date ? new Date(t.due_date).toLocaleDateString() : 'ASAP'}</div></div></div>`;
 		});
-	  }
-
-	  if(badgeCount > 0) {
-		document.getElementById('notif-badge').style.display = 'block';
-		document.getElementById('notif-list').innerHTML = html;
 	  } else {
-		document.getElementById('notif-list').innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-muted);">You are all caught up!</div>';
+		document.getElementById('notif-badge').style.display = 'none';
+		html = '<div style="padding:20px; text-align:center; color:var(--text-muted);">You are all caught up!</div>';
 	  }
+	  
+	  document.getElementById('notif-list').innerHTML = html;
 	} catch(e) {}
   }
 
