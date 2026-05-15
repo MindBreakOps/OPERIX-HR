@@ -1,10 +1,10 @@
 const CACHE_NAME = 'operix-staff-v1';
 const ASSETS_TO_CACHE = [
   '/',
-  '/staff-app.html',
+  '/index.html',
   '/manifest.json',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap',
-  'https://raw.githubusercontent.com/MindBreakOps/LX-Permits/main/hr.png'
+  'https://raw.githubusercontent.com/MindBreakOps/LX-Permits/main/hro.png'
 ];
 
 // Install event - cache core assets
