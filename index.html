@@ -9,7 +9,7 @@
 <title>OPERIX | Employee Space</title>
 
 <link rel="manifest" href="./manifest.json">
-<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/MindBreakOps/LX-Permits/main/hro.png">
+<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/MindBreakOps/LX-Permits/main/hr.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════════════════
@@ -31,18 +31,24 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 body { font-family: var(--font); background: var(--bg-app); color: var(--text-main); font-size: 14px; display: flex; flex-direction: column; min-height: 100vh; overflow: hidden; }
+
 /* ── LAYOUT ── */
 .screen { position: fixed; inset: 0; z-index: 200; background: var(--bg-app); display: flex; align-items: center; justify-content: center; padding: 20px; }
 .hidden { display: none !important; }
 .app-shell { position: fixed; inset: 0; z-index: 40; display: flex; flex-direction: column; background: var(--bg-app); }
 
-/* FIXED: Pushes content above the bottom nav AND the iPhone Home bar */
 .content-area { 
   flex: 1; 
   overflow-y: auto; 
   padding: 20px; 
   padding-bottom: calc(var(--nav-h) + 20px + env(safe-area-inset-bottom)); 
 }
+
+/* THE FIX: These rules keep the tabs separated and animate them! */
+.view-section { display: none; animation: fadeUp 0.3s ease-out; }
+.view-section.active { display: block; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
 /* ── TYPOGRAPHY & CARDS ── */
 h1, h2, h3 { color: var(--text-main); font-weight: 700; letter-spacing: -0.02em; }
 .section-title { font-size: 20px; margin-bottom: 16px; }
@@ -63,7 +69,6 @@ input[type="file"].form-control { padding: 10px 14px; font-size: 12px; }
 .btn-outline { background: var(--input-bg); color: var(--text-main); font-weight: 600; }
 
 /* ── TOPBAR & NAV ── */
-/* FIXED: Adds padding to the top so the logo and profile picture dodge the iPhone Notch */
 .topbar { 
   height: calc(70px + env(safe-area-inset-top)); 
   padding: env(safe-area-inset-top) 20px 0 20px; 
@@ -76,7 +81,6 @@ input[type="file"].form-control { padding: 10px 14px; font-size: 12px; }
 
 .avatar-circle { width: 40px; height: 40px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; border: 2px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow: hidden; background-position: center; background-size: cover; }
 
-/* FIXED: Adds padding to the bottom so the icons dodge the iPhone swipe bar */
 .mobile-nav { 
   position: fixed; 
   bottom: 0; 
@@ -138,270 +142,272 @@ input[type="file"].form-control { padding: 10px 14px; font-size: 12px; }
 
 <div class="modal-overlay" id="notif-modal" onclick="if(event.target===this) toggleNotifications()">
   <div class="modal-content">
-	<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-	  <h2 style="font-size: 18px;">Pending Tasks</h2>
-	  <button onclick="toggleNotifications()" style="background:var(--input-bg); border:none; width:32px; height:32px; border-radius:50%; cursor:pointer;">✕</button>
-	</div>
-	<div id="notif-list">
-	  <div style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 20px;">Fetching tasks...</div>
-	</div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <h2 style="font-size: 18px;">Pending Tasks</h2>
+      <button onclick="toggleNotifications()" style="background:var(--input-bg); border:none; width:32px; height:32px; border-radius:50%; cursor:pointer;">✕</button>
+    </div>
+    <div id="notif-list">
+      <div style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 20px;">Fetching tasks...</div>
+    </div>
   </div>
 </div>
 
 <section id="login-page" class="screen">
   <div style="width:100%; max-width:400px;">
-	<div style="text-align:center; margin-bottom:32px;">
-	  <div style="width: 64px; height: 64px; background: var(--primary); border-radius: 20px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(15, 82, 186, 0.3);">
-		<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-	  </div>
-	  <h1 style="font-size: 26px;">OPERIX HR</h1>
-	  <p class="subtitle" style="margin-top: 6px;">Employee Secure Access</p>
-	</div>
-	
-	<div class="card">
-	  <div class="form-group">
-		<label class="form-label">Work Email</label>
-		<input type="email" id="login-user" class="form-control" placeholder="name@company.com">
-	  </div>
-	  <div class="form-group" style="margin-bottom:24px;">
-		<label class="form-label">Password</label>
-		<input type="password" id="login-pass" class="form-control" placeholder="••••••••">
-	  </div>
-	  <button onclick="handleLogin()" id="login-btn" class="btn btn-primary">Sign In</button>
-	  <div id="login-error" class="error-msg"></div>
-	</div>
+    <div style="text-align:center; margin-bottom:32px;">
+      <div style="width: 64px; height: 64px; background: var(--primary); border-radius: 20px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(15, 82, 186, 0.3);">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <h1 style="font-size: 26px;">OPERIX HR</h1>
+      <p class="subtitle" style="margin-top: 6px;">Employee Secure Access</p>
+    </div>
+    
+    <div class="card">
+      <div class="form-group">
+        <label class="form-label">Work Email</label>
+        <input type="email" id="login-user" class="form-control" placeholder="name@company.com">
+      </div>
+      <div class="form-group" style="margin-bottom:24px;">
+        <label class="form-label">Password</label>
+        <input type="password" id="login-pass" class="form-control" placeholder="••••••••">
+      </div>
+      <button onclick="handleLogin()" id="login-btn" class="btn btn-primary">Sign In</button>
+      <div id="login-error" class="error-msg"></div>
+    </div>
   </div>
 </section>
 
 <section id="otp-page" class="screen hidden">
   <div style="width:100%; max-width:400px;">
-	<div class="card" style="text-align:center; padding: 40px 24px;">
-	  <div style="width: 56px; height: 56px; background: var(--primary-light); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
-		<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-	  </div>
-	  <h1 style="font-size: 22px; margin-bottom: 8px;">Security Check</h1>
-	  <p class="subtitle" style="margin-bottom: 24px;" id="otp-email-hint">We sent a 6-digit code.</p>
-	  
-	  <input type="number" id="otp-input" class="form-control" placeholder="000000" style="font-size:28px; text-align:center; letter-spacing:12px; margin-bottom:20px; height: 60px; font-weight: 700;">
-	  <button onclick="verifyOTP()" id="otp-btn" class="btn btn-primary">Verify & Proceed</button>
-	  <div id="otp-error" class="error-msg"></div>
+    <div class="card" style="text-align:center; padding: 40px 24px;">
+      <div style="width: 56px; height: 56px; background: var(--primary-light); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <h1 style="font-size: 22px; margin-bottom: 8px;">Security Check</h1>
+      <p class="subtitle" style="margin-bottom: 24px;" id="otp-email-hint">We sent a 6-digit code.</p>
+      
+      <input type="number" id="otp-input" class="form-control" placeholder="000000" style="font-size:28px; text-align:center; letter-spacing:12px; margin-bottom:20px; height: 60px; font-weight: 700;">
+      <button onclick="verifyOTP()" id="otp-btn" class="btn btn-primary">Verify & Proceed</button>
+      <div id="otp-error" class="error-msg"></div>
 
-	  <div style="margin-top: 24px; display: flex; justify-content: center; gap: 20px; font-size: 13px; font-weight: 600;">
-		<button onclick="backToLogin()" style="background:none; border:none; color:var(--text-muted); cursor:pointer;">Cancel</button>
-		<button onclick="resendOTP()" style="background:none; border:none; color:var(--primary); cursor:pointer;">Resend Code</button>
-	  </div>
-	</div>
+      <div style="margin-top: 24px; display: flex; justify-content: center; gap: 20px; font-size: 13px; font-weight: 600;">
+        <button onclick="backToLogin()" style="background:none; border:none; color:var(--text-muted); cursor:pointer;">Cancel</button>
+        <button onclick="resendOTP()" style="background:none; border:none; color:var(--primary); cursor:pointer;">Resend Code</button>
+      </div>
+    </div>
   </div>
 </section>
 
 <div id="hr-app" class="app-shell hidden">
   
   <header class="topbar">
-	<div style="display: flex; align-items: center; gap: 12px;">
-	  <div class="avatar-circle" id="nav-av">OP</div>
-	  <div>
-		<div style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Hello,</div>
-		<div style="font-weight: 800; font-size: 15px;" id="welcome-name">Loading...</div>
-	  </div>
-	</div>
-	
-	<div onclick="toggleNotifications()" style="width: 40px; height: 40px; background: var(--bg-card); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.05); cursor: pointer; position: relative;">
-	  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-main)" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-	  <span id="notif-badge" style="position: absolute; top: 0px; right: 0px; width: 10px; height: 10px; background: var(--danger); border-radius: 50%; border: 2px solid var(--bg-card); display: none;"></span>
-	</div>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <div class="avatar-circle" id="nav-av">OP</div>
+      <div>
+        <div style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Hello,</div>
+        <div style="font-weight: 800; font-size: 15px;" id="welcome-name">Loading...</div>
+      </div>
+    </div>
+    
+    <div onclick="toggleNotifications()" style="width: 40px; height: 40px; background: var(--bg-card); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.05); cursor: pointer; position: relative;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-main)" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span id="notif-badge" style="position: absolute; top: 0px; right: 0px; width: 10px; height: 10px; background: var(--danger); border-radius: 50%; border: 2px solid var(--bg-card); display: none;"></span>
+    </div>
   </header>
 
   <div class="content-area">
-	
-	<div id="view-job" class="view-section active">
-	  
-	  <div class="card" style="background: linear-gradient(135deg, var(--primary), #0a3d8e); color: white; padding: 24px;">
-		<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
-		  <div>
-			<div style="font-size: 12px; opacity: 0.8; margin-bottom: 4px;" id="assigned-project-name">Project Tracking</div>
-			<div id="gps-status" style="font-size: 11px; font-weight: 600;">Locating device...</div>
-		  </div>
-		</div>
-		
-		<div style="display: flex; gap: 10px;">
-		  <button id="btn-checkin" class="btn" onclick="hrClockIn()" style="background: white; color: var(--primary); display: none;">📍 Clock In</button>
-		  <button id="btn-checkout" class="btn" onclick="hrClockOut()" style="background: var(--danger); color: white; border: 1px solid rgba(255,255,255,0.2); display: none;">🛑 Clock Out</button>
-		</div>
-		<div style="font-size: 12px; opacity: 0.9; margin-top: 12px; font-weight: 500; text-align: center;" id="shift-location-info">Initializing tracker...</div>
-	  </div>
+    
+    <div id="view-job" class="view-section active">
+      
+      <div class="card" style="background: linear-gradient(135deg, var(--primary), #0a3d8e); color: white; padding: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+          <div>
+            <div style="font-size: 12px; opacity: 0.8; margin-bottom: 4px;" id="assigned-project-name">Project Tracking</div>
+            <div id="gps-status" style="font-size: 11px; font-weight: 600;">Locating device...</div>
+          </div>
+        </div>
+        
+        <div style="display: flex; gap: 10px;">
+          <button id="btn-checkin" class="btn" onclick="hrClockIn()" style="background: white; color: var(--primary); display: none;">📍 Clock In</button>
+          <button id="btn-checkout" class="btn" onclick="hrClockOut()" style="background: var(--danger); color: white; border: 1px solid rgba(255,255,255,0.2); display: none;">🛑 Clock Out</button>
+        </div>
+        <div style="font-size: 12px; opacity: 0.9; margin-top: 12px; font-weight: 500; text-align: center;" id="shift-location-info">Initializing tracker...</div>
+      </div>
 
-	  <h3 class="section-title">My Assignment</h3>
-	  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
-		<div class="card" style="margin: 0; padding: 16px;">
-		  <div class="subtitle" style="margin-bottom: 4px;">Role</div>
-		  <div style="font-size: 14px; font-weight: 700; color: var(--text-main);" id="job-title">--</div>
-		</div>
-		<div class="card" style="margin: 0; padding: 16px;">
-		  <div class="subtitle" style="margin-bottom: 4px;">Department</div>
-		  <div style="font-size: 14px; font-weight: 700; color: var(--text-main);" id="job-dept">--</div>
-		</div>
-	  </div>
-	</div>
+      <h3 class="section-title">My Assignment</h3>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+        <div class="card" style="margin: 0; padding: 16px;">
+          <div class="subtitle" style="margin-bottom: 4px;">Role</div>
+          <div style="font-size: 14px; font-weight: 700; color: var(--text-main);" id="job-title">--</div>
+        </div>
+        <div class="card" style="margin: 0; padding: 16px;">
+          <div class="subtitle" style="margin-bottom: 4px;">Department</div>
+          <div style="font-size: 14px; font-weight: 700; color: var(--text-main);" id="job-dept">--</div>
+        </div>
+      </div>
+    </div>
 
-	<div id="view-timesheet" class="view-section">
-	  <h2 class="section-title">Timesheet Log</h2>
-	  <div class="card" style="padding: 16px 0;">
-		<div style="padding: 0 16px 12px 16px; display: flex; justify-content: space-between; align-items: center;">
-		  <span class="subtitle">Your punch records & hours</span>
-		</div>
-		
-		<table class="data-table" id="timesheet-table">
-		  <thead>
-			<tr>
-			  <th style="padding-left:16px;">Date</th>
-			  <th>In</th>
-			  <th>Out</th>
-			  <th style="padding-right:16px;">Total</th>
-			</tr>
-		  </thead>
-		  <tbody id="timesheet-list">
-			<tr><td colspan="4" style="text-align:center; padding: 20px; color:var(--text-muted);">Loading attendance...</td></tr>
-		  </tbody>
-		</table>
-	  </div>
-	</div>
+    <div id="view-timesheet" class="view-section">
+      <h2 class="section-title">Timesheet Log</h2>
+      <div class="card" style="padding: 16px 0;">
+        <div style="padding: 0 16px 12px 16px; display: flex; justify-content: space-between; align-items: center;">
+          <span class="subtitle">Your punch records & hours</span>
+        </div>
+        
+        <table class="data-table" id="timesheet-table">
+          <thead>
+            <tr>
+              <th style="padding-left:16px;">Date</th>
+              <th>In</th>
+              <th>Out</th>
+              <th style="padding-right:16px;">Total</th>
+            </tr>
+          </thead>
+          <tbody id="timesheet-list">
+            <tr><td colspan="4" style="text-align:center; padding: 20px; color:var(--text-muted);">Loading attendance...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-	<div id="view-payroll" class="view-section">
-	  <h2 class="section-title">Payroll Center</h2>
-	  <div class="card">
-		<h3 style="font-size: 15px; margin-bottom: 8px;">Dynamic Pay Computation</h3>
-		<p class="subtitle" style="margin-bottom: 12px;">Based on 'operix_shifts' salary & timesheet policy</p>
-		<div id="payslip-list">
-		  <div style="padding: 16px; text-align: center; color: var(--text-muted); font-size: 12px;">Calculating data...</div>
-		</div>
-	  </div>
-	</div>
+    <div id="view-payroll" class="view-section">
+      <h2 class="section-title">Payroll Center</h2>
+      <div class="card">
+        <h3 style="font-size: 15px; margin-bottom: 8px;">Dynamic Pay Computation</h3>
+        <p class="subtitle" style="margin-bottom: 12px;">Based on 'operix_shifts' salary & timesheet policy</p>
+        <div id="payslip-list">
+          <div style="padding: 16px; text-align: center; color: var(--text-muted); font-size: 12px;">Calculating data...</div>
+        </div>
+      </div>
+    </div>
 
-	<div id="view-requests" class="view-section">
-	  <h2 class="section-title">Submit a Request</h2>
-	  
-	  <div class="card">
-		<div class="form-group">
-		  <label class="form-label">Type</label>
-		  <select id="req-type" class="form-control" onchange="toggleReqFields()">
-			<option value="Annual Leave (PTO)">Annual Leave (PTO)</option>
-			<option value="Sick Leave">Sick Leave</option>
-			<option value="Overtime Request">Overtime Request</option>
-			<option value="Expense Claim">Expense Claim</option>
-			<option value="Salary Advance / Loan">Salary Advance / Loan</option>
-			<option value="Salary Inquiry">Salary Inquiry</option>
-			<option value="General Support">General Support</option>
-		  </select>
-		</div>
-		
-		<div id="req-dates-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
-		  <div><label class="form-label">From</label><input type="date" id="req-start" class="form-control"></div>
-		  <div><label class="form-label">To</label><input type="date" id="req-end" class="form-control"></div>
-		</div>
-		
-		<div id="req-ot-container" class="form-group" style="display: none;">
-		  <label class="form-label">Number of OT Hours</label>
-		  <input type="number" id="req-ot-hours" class="form-control" placeholder="e.g. 4">
-		</div>
-		
-		<div class="form-group">
-		  <label class="form-label">Details / Reason</label>
-		  <textarea id="req-notes" class="form-control" placeholder="Provide context..."></textarea>
-		</div>
-		
-		<div class="form-group" style="margin-bottom: 20px;">
-		  <label class="form-label">Attachment (Optional)</label>
-		  <input type="file" id="req-attachment" class="form-control">
-		</div>
-		
-		<button onclick="submitRequest()" id="btn-submit-req" class="btn btn-primary">Send to HR</button>
-	  </div>
+    <div id="view-requests" class="view-section">
+      <h2 class="section-title">Submit a Request</h2>
+      
+      <div class="card">
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <select id="req-type" class="form-control" onchange="toggleReqFields()">
+            <option value="Time Off Request">Time Off Request</option>
+            <option value="Excuses Request">Excuses Request</option>
+            <option value="Annual Leave (PTO)">Annual Leave (PTO)</option>
+            <option value="Sick Leave">Sick Leave</option>
+            <option value="Overtime Request">Overtime Request</option>
+            <option value="Expense Claim">Expense Claim</option>
+            <option value="Salary Advance / Loan">Salary Advance / Loan</option>
+            <option value="Salary Inquiry">Salary Inquiry</option>
+            <option value="General Support">General Support</option>
+          </select>
+        </div>
+        
+        <div id="req-dates-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+          <div><label class="form-label">From</label><input type="date" id="req-start" class="form-control"></div>
+          <div><label class="form-label">To</label><input type="date" id="req-end" class="form-control"></div>
+        </div>
+        
+        <div id="req-ot-container" class="form-group" style="display: none;">
+          <label class="form-label">Number of OT Hours</label>
+          <input type="number" id="req-ot-hours" class="form-control" placeholder="e.g. 4">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Details / Reason</label>
+          <textarea id="req-notes" class="form-control" placeholder="Provide context..."></textarea>
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label class="form-label">Attachment (Optional)</label>
+          <input type="file" id="req-attachment" class="form-control">
+        </div>
+        
+        <button onclick="submitRequest()" id="btn-submit-req" class="btn btn-primary">Send to HR</button>
+      </div>
 
-	  <div class="card">
-		<h3 style="font-size: 15px; margin-bottom: 12px;">Request History</h3>
-		<div id="requests-list">
-		  <div style="padding: 16px; text-align: center; color: var(--text-muted); font-size: 12px;">Loading history...</div>
-		</div>
-	  </div>
-	</div>
+      <div class="card">
+        <h3 style="font-size: 15px; margin-bottom: 12px;">Request History</h3>
+        <div id="requests-list">
+          <div style="padding: 16px; text-align: center; color: var(--text-muted); font-size: 12px;">Loading history...</div>
+        </div>
+      </div>
+    </div>
 
-	<div id="view-profile" class="view-section">
-	  <h2 class="section-title">My Profile</h2>
-	  
-	  <div class="card" style="text-align: center; padding: 24px 16px; position: relative;">
-		<input type="file" id="profile-photo-upload" style="display: none;" accept="image/*" onchange="handlePhotoUpload(event)">
-		
-		<div class="avatar-circle" style="width: 80px; height: 80px; font-size: 28px; margin: 0 auto 12px; cursor: pointer; position: relative;" id="prof-av2" onclick="document.getElementById('profile-photo-upload').click()">
-		  <span id="prof-av-text">OP</span>
-		  <div style="position: absolute; bottom: 0; right: 0; background: var(--primary); width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center;">
-			<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-		  </div>
-		</div>
-		<h2 style="font-size: 18px; margin-bottom: 4px;" id="prof-name2">--</h2>
-		<p style="color: var(--text-muted); margin-bottom: 16px; font-size: 12px;" id="prof-email2">--</p>
-		
-		<div style="background: var(--input-bg); border-radius: 12px; padding: 16px; text-align: left; margin-bottom: 16px;">
-		  <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:12px;">
-			<span style="color:var(--text-muted);">Employee ID:</span><span style="font-weight:600;" id="prof-emp-id">--</span>
-		  </div>
-		  <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:12px;">
-			<span style="color:var(--text-muted);">Phone:</span><span style="font-weight:600;" id="prof-phone">--</span>
-		  </div>
-		  <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:12px;">
-			<span style="color:var(--text-muted);">National ID:</span><span style="font-weight:600;" id="prof-id">--</span>
-		  </div>
-		  <div style="display:flex; justify-content:space-between; margin-bottom:16px; font-size:12px;">
-			<span style="color:var(--text-muted);">Join Date:</span><span style="font-weight:600;" id="prof-reg">--</span>
-		  </div>
-		  
-		  <div style="margin-bottom:8px; font-size:12px; display:flex; justify-content:space-between;">
-			<span style="color:var(--text-muted);">Contract Period:</span>
-			<span style="font-weight:600; color:var(--primary);" id="prof-contract-dates">--</span>
-		  </div>
-		  <div class="progress-bg">
-			<div id="prof-contract-progress" class="progress-fill" style="width: 0%;"></div>
-		  </div>
-		  <div style="text-align: right; font-size: 10px; color: var(--text-muted); margin-top: 4px;">
-			<span id="prof-contract-percent">0%</span> Completed
-		  </div>
-		</div>
-	  </div>
+    <div id="view-profile" class="view-section">
+      <h2 class="section-title">My Profile</h2>
+      
+      <div class="card" style="text-align: center; padding: 24px 16px; position: relative;">
+        <input type="file" id="profile-photo-upload" style="display: none;" accept="image/*" onchange="handlePhotoUpload(event)">
+        
+        <div class="avatar-circle" style="width: 80px; height: 80px; font-size: 28px; margin: 0 auto 12px; cursor: pointer; position: relative;" id="prof-av2" onclick="document.getElementById('profile-photo-upload').click()">
+          <span id="prof-av-text">OP</span>
+          <div style="position: absolute; bottom: 0; right: 0; background: var(--primary); width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+        </div>
+        <h2 style="font-size: 18px; margin-bottom: 4px;" id="prof-name2">--</h2>
+        <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 12px;" id="prof-email2">--</p>
+        
+        <div style="background: var(--input-bg); border-radius: 12px; padding: 16px; text-align: left; margin-bottom: 16px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:12px;">
+            <span style="color:var(--text-muted);">Employee ID:</span><span style="font-weight:600;" id="prof-emp-id">--</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:12px;">
+            <span style="color:var(--text-muted);">Phone:</span><span style="font-weight:600;" id="prof-phone">--</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:12px;">
+            <span style="color:var(--text-muted);">National ID:</span><span style="font-weight:600;" id="prof-id">--</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:16px; font-size:12px;">
+            <span style="color:var(--text-muted);">Join Date:</span><span style="font-weight:600;" id="prof-reg">--</span>
+          </div>
+          
+          <div style="margin-bottom:8px; font-size:12px; display:flex; justify-content:space-between;">
+            <span style="color:var(--text-muted);">Contract Period:</span>
+            <span style="font-weight:600; color:var(--primary);" id="prof-contract-dates">--</span>
+          </div>
+          <div class="progress-bg">
+            <div id="prof-contract-progress" class="progress-fill" style="width: 0%;"></div>
+          </div>
+          <div style="text-align: right; font-size: 10px; color: var(--text-muted); margin-top: 4px;">
+            <span id="prof-contract-percent">0%</span> Completed
+          </div>
+        </div>
+      </div>
 
-	  <div class="card">
-		<h3 style="font-size: 15px; margin-bottom: 12px;">Official Documents</h3>
-		<div id="documents-list">
-		  <div style="padding: 16px; text-align: center; color: var(--text-muted); font-size: 12px;">Loading documents...</div>
-		</div>
-	  </div>
+      <div class="card">
+        <h3 style="font-size: 15px; margin-bottom: 12px;">Official Documents</h3>
+        <div id="documents-list">
+          <div style="padding: 16px; text-align: center; color: var(--text-muted); font-size: 12px;">Loading documents...</div>
+        </div>
+      </div>
 
-	  <button class="btn btn-outline" style="color: var(--danger); background: var(--danger-bg);" onclick="performLogout()">
-		Sign Out
-	  </button>
-	</div>
+      <button class="btn btn-outline" style="color: var(--danger); background: var(--danger-bg);" onclick="performLogout()">
+        Sign Out
+      </button>
+    </div>
 
   </div>
 
   <nav class="mobile-nav">
-	<button class="mobile-nav-item active" onclick="switchNav('job', this)">
-	  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
-	  Home
-	</button>
-	<button class="mobile-nav-item" onclick="switchNav('timesheet', this)">
-	  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-	  Time
-	</button>
-	<button class="mobile-nav-item" onclick="switchNav('payroll', this)">
-	  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-	  Pay
-	</button>
-	<button class="mobile-nav-item" onclick="switchNav('requests', this)">
-	  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-	  Reqs
-	</button>
-	<button class="mobile-nav-item" onclick="switchNav('profile', this)">
-	  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-	  Prof
-	</button>
+    <button class="mobile-nav-item active" onclick="switchNav('job', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+      Home
+    </button>
+    <button class="mobile-nav-item" onclick="switchNav('timesheet', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Time
+    </button>
+    <button class="mobile-nav-item" onclick="switchNav('payroll', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Pay
+    </button>
+    <button class="mobile-nav-item" onclick="switchNav('requests', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      Reqs
+    </button>
+    <button class="mobile-nav-item" onclick="switchNav('profile', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Prof
+    </button>
   </nav>
 </div>
 
@@ -410,7 +416,7 @@ input[type="file"].form-control { padding: 10px 14px; font-size: 12px; }
   // PWA & CONFIG
   // ==========================================
   if ('serviceWorker' in navigator) {
-	window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(e => console.log('SW Error')); });
+    window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(e => console.log('SW Error')); });
   }
 
   const SUPABASE_URL  = 'https://lzobdqlbsxjlupyewdqq.supabase.co';
@@ -434,667 +440,653 @@ input[type="file"].form-control { padding: 10px 14px; font-size: 12px; }
   // UTILS & TOASTS
   // ==========================================
   function showToast(msg, type = 'info') {
-	const el = document.createElement('div');
-	el.className = `toast`;
-	let icon = type === 'success' ? '✅' : (type === 'error' ? '❌' : 'ℹ️');
-	el.innerHTML = `<span>${icon}</span> <span>${msg}</span>`;
-	document.getElementById('toast-container').appendChild(el);
-	setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateY(-20px)'; setTimeout(() => el.remove(), 400); }, 3000);
+    const el = document.createElement('div');
+    el.className = `toast`;
+    let icon = type === 'success' ? '✅' : (type === 'error' ? '❌' : 'ℹ️');
+    el.innerHTML = `<span>${icon}</span> <span>${msg}</span>`;
+    document.getElementById('toast-container').appendChild(el);
+    setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateY(-20px)'; setTimeout(() => el.remove(), 400); }, 3000);
   }
 
   // ==========================================
   // SUPABASE HELPERS
   // ==========================================
   async function sbFetch(path, opts = {}) {
-	const token = localStorage.getItem('operix_jwt') || SUPABASE_ANON;
-	const headers = { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${token}`, ...opts.headers };
-	
-	const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { ...opts, headers });
-	if (!res.ok) { 
-	  if (res.status === 404) return []; 
-	  const e = await res.text(); throw new Error(e); 
-	}
-	if (res.status === 204 || !res.headers.get('content-type')?.includes('json')) return null;
-	return res.json();
+    const token = localStorage.getItem('operix_jwt') || SUPABASE_ANON;
+    const headers = { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${token}`, ...opts.headers };
+    
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { ...opts, headers });
+    if (!res.ok) { 
+      if (res.status === 404) return []; 
+      const e = await res.text(); throw new Error(e); 
+    }
+    if (res.status === 204 || !res.headers.get('content-type')?.includes('json')) return null;
+    return res.json();
   }
 
   async function sbAuth(path, body) {
-	const res = await fetch(`${SUPABASE_URL}/auth/v1/${path}`, {
-	  method: 'POST', headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON }, body: JSON.stringify(body)
-	});
-	const data = await res.json();
-	if (!res.ok) throw new Error(data.error_description || data.msg || 'Auth failed');
-	return data;
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/${path}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON }, body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error_description || data.msg || 'Auth failed');
+    return data;
   }
 
   async function getDeviceFingerprint() {
-	let fp = localStorage.getItem('opx_device_fp');
-	if (!fp) { fp = 'dev_' + Math.random().toString(36).substr(2, 9); localStorage.setItem('opx_device_fp', fp); }
-	return fp;
+    let fp = localStorage.getItem('opx_device_fp');
+    if (!fp) { fp = 'dev_' + Math.random().toString(36).substr(2, 9); localStorage.setItem('opx_device_fp', fp); }
+    return fp;
   }
 
   // ==========================================
   // AUTHENTICATION LOGIC
   // ==========================================
   async function handleLogin() {
-	const loginEmailInput = document.getElementById('login-user').value.trim().toLowerCase();
-	const passInput = document.getElementById('login-pass').value;
-	const errEl = document.getElementById('login-error');
-	const btn = document.getElementById('login-btn');
-	
-	errEl.style.display = 'none';
-	if (!loginEmailInput || !passInput) { errEl.textContent = 'Please enter your credentials.'; errEl.style.display = 'block'; return; }
-	
-	btn.disabled = true; btn.textContent = 'Authenticating…';
-	
-	try {
-	  const authData = await sbAuth('token?grant_type=password', { email: loginEmailInput, password: passInput });
-	  localStorage.setItem('operix_jwt', authData.access_token);
-	  
-	  const rows = await sbFetch(`accounts?email=eq.${encodeURIComponent(loginEmailInput)}&limit=1`, {method:'GET'});
-	  if (!rows || !rows.length) throw new Error('Account profile not found.');
-	  
-	  const account = rows[0];
-	  if ((account.role||'').toLowerCase() === 'pending') throw new Error('Your account is pending admin approval.');
-	  
-	  const deviceId = await getDeviceFingerprint();
-	  const targetEmail = (account.otp_email && account.otp_email.includes('@')) ? account.otp_email.trim() : account.email.trim();
-	  
-	  let trusted = [];
-	  try { trusted = await sbFetch(`operix_trusted_devices?account_email=eq.${encodeURIComponent(loginEmailInput)}&device_id=eq.${deviceId}&limit=1`, {method:'GET'}); } catch{}
-	  
-	  if (trusted && trusted.length > 0) {
-		currentUser = account;
-		document.getElementById('login-page').classList.add('hidden');
-		initApp();
-	  } else {
-		const code = String(Math.floor(100000 + Math.random() * 900000));
-		pendingLoginEmail = loginEmailInput; pendingLoginAccount = account;
-		
-		await sbFetch('operix_otp', {method:'POST', body:JSON.stringify({email:loginEmailInput, code, expires_at:new Date(Date.now()+5*60000).toISOString(), used:false})});
-		
-		const emailPayload = {action:'sendOTP', email:targetEmail, code, name:account.name||'User'};
-		await fetch(`${OPS_API}?action=sendOTP&email=${encodeURIComponent(targetEmail)}&code=${code}`, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(emailPayload)});
-		
-		const masked = targetEmail.replace(/^(.)(.*)(.@.*)$/, (_, a, b, c) => a + b.replace(/./g, '*') + c);
-		document.getElementById('otp-email-hint').innerHTML = `We sent a code to:<br><strong style="color:var(--text-main);">${masked}</strong>`;
-		
-		document.getElementById('login-page').classList.add('hidden');
-		document.getElementById('otp-page').classList.remove('hidden');
-		document.getElementById('otp-input').value = '';
-	  }
-	} catch(e) {
-	  localStorage.removeItem('operix_jwt');
-	  errEl.textContent = e.message.includes('Invalid login credentials') ? 'Wrong email or password.' : e.message;
-	  errEl.style.display = 'block';
-	} finally { btn.disabled = false; btn.textContent = 'Sign In'; }
+    const loginEmailInput = document.getElementById('login-user').value.trim().toLowerCase();
+    const passInput = document.getElementById('login-pass').value;
+    const errEl = document.getElementById('login-error');
+    const btn = document.getElementById('login-btn');
+    
+    errEl.style.display = 'none';
+    if (!loginEmailInput || !passInput) { errEl.textContent = 'Please enter your credentials.'; errEl.style.display = 'block'; return; }
+    
+    btn.disabled = true; btn.textContent = 'Authenticating…';
+    
+    try {
+      const authData = await sbAuth('token?grant_type=password', { email: loginEmailInput, password: passInput });
+      localStorage.setItem('operix_jwt', authData.access_token);
+      
+      const rows = await sbFetch(`accounts?email=eq.${encodeURIComponent(loginEmailInput)}&limit=1`, {method:'GET'});
+      if (!rows || !rows.length) throw new Error('Account profile not found.');
+      
+      const account = rows[0];
+      if ((account.role||'').toLowerCase() === 'pending') throw new Error('Your account is pending admin approval.');
+      
+      const deviceId = await getDeviceFingerprint();
+      const targetEmail = (account.otp_email && account.otp_email.includes('@')) ? account.otp_email.trim() : account.email.trim();
+      
+      let trusted = [];
+      try { trusted = await sbFetch(`operix_trusted_devices?account_email=eq.${encodeURIComponent(loginEmailInput)}&device_id=eq.${deviceId}&limit=1`, {method:'GET'}); } catch{}
+      
+      if (trusted && trusted.length > 0) {
+        currentUser = account;
+        document.getElementById('login-page').classList.add('hidden');
+        initApp();
+      } else {
+        const code = String(Math.floor(100000 + Math.random() * 900000));
+        pendingLoginEmail = loginEmailInput; pendingLoginAccount = account;
+        
+        await sbFetch('operix_otp', {method:'POST', body:JSON.stringify({email:loginEmailInput, code, expires_at:new Date(Date.now()+5*60000).toISOString(), used:false})});
+        
+        const emailPayload = {action:'sendOTP', email:targetEmail, code, name:account.name||'User'};
+        await fetch(`${OPS_API}?action=sendOTP&email=${encodeURIComponent(targetEmail)}&code=${code}`, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(emailPayload)});
+        
+        const masked = targetEmail.replace(/^(.)(.*)(.@.*)$/, (_, a, b, c) => a + b.replace(/./g, '*') + c);
+        document.getElementById('otp-email-hint').innerHTML = `We sent a code to:<br><strong style="color:var(--text-main);">${masked}</strong>`;
+        
+        document.getElementById('login-page').classList.add('hidden');
+        document.getElementById('otp-page').classList.remove('hidden');
+        document.getElementById('otp-input').value = '';
+      }
+    } catch(e) {
+      localStorage.removeItem('operix_jwt');
+      errEl.textContent = e.message.includes('Invalid login credentials') ? 'Wrong email or password.' : e.message;
+      errEl.style.display = 'block';
+    } finally { btn.disabled = false; btn.textContent = 'Sign In'; }
   }
 
   async function resendOTP() {
-	if (!pendingLoginEmail || !pendingLoginAccount) return;
-	const code = String(Math.floor(100000 + Math.random()*900000));
-	try { await sbFetch('operix_otp', {method:'POST', body:JSON.stringify({email:pendingLoginEmail, code, expires_at:new Date(Date.now()+5*60000).toISOString(), used:false})}); } catch{}
-	fetch(OPS_API, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body:JSON.stringify({ action:'sendOTP', email:pendingLoginEmail, name:pendingLoginAccount.name||'User', code }) });
-	showToast('New code sent.', 'success');
+    if (!pendingLoginEmail || !pendingLoginAccount) return;
+    const code = String(Math.floor(100000 + Math.random()*900000));
+    try { await sbFetch('operix_otp', {method:'POST', body:JSON.stringify({email:pendingLoginEmail, code, expires_at:new Date(Date.now()+5*60000).toISOString(), used:false})}); } catch{}
+    fetch(OPS_API, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body:JSON.stringify({ action:'sendOTP', email:pendingLoginEmail, name:pendingLoginAccount.name||'User', code }) });
+    showToast('New code sent.', 'success');
   }
 
   function backToLogin() {
-	document.getElementById('otp-page').classList.add('hidden');
-	document.getElementById('login-page').classList.remove('hidden');
-	pendingLoginEmail = null; pendingLoginAccount = null;
+    document.getElementById('otp-page').classList.add('hidden');
+    document.getElementById('login-page').classList.remove('hidden');
+    pendingLoginEmail = null; pendingLoginAccount = null;
   }
 
   async function verifyOTP() {
-	const code = document.getElementById('otp-input').value.trim();
-	const errEl = document.getElementById('otp-error');
-	errEl.style.display = 'none';
-	
-	if (code.length !== 6 && code !== '123456') { errEl.textContent='Enter the 6-digit code.'; errEl.style.display='block'; return; }
-	
-	const btn = document.getElementById('otp-btn');
-	btn.disabled = true; btn.textContent = 'Verifying…';
-	
-	try {
-	  if (code !== '123456') {
-		const rows = await sbFetch(`operix_otp?email=eq.${encodeURIComponent(pendingLoginEmail)}&code=eq.${code}&used=eq.false&order=expires_at.desc&limit=1`, {method:'GET'});
-		if (!rows || !rows.length) throw new Error('Invalid or expired code.');
-		if (new Date(rows[0].expires_at) < new Date()) throw new Error('Code expired. Click "Resend Code".');
-		
-		await sbFetch(`operix_otp?id=eq.${rows[0].id}`, {method:'PATCH', body:JSON.stringify({used:true}), headers:{'Prefer':'return=minimal'}});
-	  }
-	  
-	  const deviceId = await getDeviceFingerprint();
-	  try { await sbFetch('operix_trusted_devices', {method:'POST', body:JSON.stringify({account_email:pendingLoginEmail, device_id:deviceId})}); } catch{}
-	  
-	  currentUser = pendingLoginAccount;
-	  document.getElementById('otp-page').classList.add('hidden');
-	  initApp();
-	} catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; } finally { btn.disabled = false; btn.textContent = 'Verify & Proceed'; }
+    const code = document.getElementById('otp-input').value.trim();
+    const errEl = document.getElementById('otp-error');
+    errEl.style.display = 'none';
+    
+    if (code.length !== 6 && code !== '123456') { errEl.textContent='Enter the 6-digit code.'; errEl.style.display='block'; return; }
+    
+    const btn = document.getElementById('otp-btn');
+    btn.disabled = true; btn.textContent = 'Verifying…';
+    
+    try {
+      if (code !== '123456') {
+        const rows = await sbFetch(`operix_otp?email=eq.${encodeURIComponent(pendingLoginEmail)}&code=eq.${code}&used=eq.false&order=expires_at.desc&limit=1`, {method:'GET'});
+        if (!rows || !rows.length) throw new Error('Invalid or expired code.');
+        if (new Date(rows[0].expires_at) < new Date()) throw new Error('Code expired. Click "Resend Code".');
+        
+        await sbFetch(`operix_otp?id=eq.${rows[0].id}`, {method:'PATCH', body:JSON.stringify({used:true}), headers:{'Prefer':'return=minimal'}});
+      }
+      
+      const deviceId = await getDeviceFingerprint();
+      try { await sbFetch('operix_trusted_devices', {method:'POST', body:JSON.stringify({account_email:pendingLoginEmail, device_id:deviceId})}); } catch{}
+      
+      currentUser = pendingLoginAccount;
+      document.getElementById('otp-page').classList.add('hidden');
+      initApp();
+    } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; } finally { btn.disabled = false; btn.textContent = 'Verify & Proceed'; }
   }
 
   function performLogout() {
-	currentUser = null; pendingLoginEmail = null; pendingLoginAccount = null; hrClockedIn = false; 
-	localStorage.removeItem('operix_jwt');
-	if (watchId) { navigator.geolocation.clearWatch(watchId); watchId = null; }
-	
-	document.getElementById('hr-app').classList.add('hidden');
-	document.getElementById('login-page').classList.remove('hidden');
-	document.getElementById('login-user').value = ''; document.getElementById('login-pass').value = '';
+    currentUser = null; pendingLoginEmail = null; pendingLoginAccount = null; hrClockedIn = false; 
+    localStorage.removeItem('operix_jwt');
+    if (watchId) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+    
+    document.getElementById('hr-app').classList.add('hidden');
+    document.getElementById('login-page').classList.remove('hidden');
+    document.getElementById('login-user').value = ''; document.getElementById('login-pass').value = '';
   }
 
   // ==========================================
-  // INIT APP & PROFILE LOAD
+  // INIT APP
   // ==========================================
   async function initApp() {
-	if (!currentUser || !localStorage.getItem('operix_jwt')) { performLogout(); return; }
+    if (!currentUser || !localStorage.getItem('operix_jwt')) { performLogout(); return; }
 
-	const displayName = currentUser.name || currentUser.email.split('@')[0];
-	const initials = displayName.substring(0,2).toUpperCase();
-	
-	// Topbar
-	document.getElementById('welcome-name').innerText = displayName;
-	document.getElementById('nav-av').innerText = initials;
-	
-	// Check Photo
-	if (currentUser.photo_url || currentUser.photo) {
-	  const url = currentUser.photo_url || currentUser.photo;
-	  document.getElementById('nav-av').innerHTML = '';
-	  document.getElementById('nav-av').style.backgroundImage = `url('${url}')`;
-	  document.getElementById('prof-av2').innerHTML = '';
-	  document.getElementById('prof-av2').style.backgroundImage = `url('${url}')`;
-	} else {
-	  document.getElementById('prof-av-text').innerText = initials;
-	}
-	
-	document.getElementById('job-title').innerText = currentUser.job_title || currentUser.role || 'Staff Member';
-	document.getElementById('job-dept').innerText = currentUser.department || 'HQ';
+    const displayName = currentUser.name || currentUser.email.split('@')[0];
+    const initials = displayName.substring(0,2).toUpperCase();
+    
+    document.getElementById('welcome-name').innerText = displayName;
+    document.getElementById('nav-av').innerText = initials;
+    
+    if (currentUser.photo_url || currentUser.photo) {
+      const url = currentUser.photo_url || currentUser.photo;
+      document.getElementById('nav-av').innerHTML = '';
+      document.getElementById('nav-av').style.backgroundImage = `url('${url}')`;
+      document.getElementById('prof-av2').innerHTML = '';
+      document.getElementById('prof-av2').style.backgroundImage = `url('${url}')`;
+    } else {
+      document.getElementById('prof-av-text').innerText = initials;
+    }
+    
+    document.getElementById('job-title').innerText = currentUser.job_title || currentUser.role || 'Staff Member';
+    document.getElementById('job-dept').innerText = currentUser.department || 'HQ';
 
-	// Profile details
-	document.getElementById('prof-name2').innerText = displayName;
-	document.getElementById('prof-email2').innerText = currentUser.email;
-	document.getElementById('prof-emp-id').innerText = currentUser.emp_id || currentUser.id || 'N/A';
-	document.getElementById('prof-phone').innerText = currentUser.phone || 'Not Provided';
-	document.getElementById('prof-id').innerText = currentUser.national_id || 'Not Provided';
-	document.getElementById('prof-reg').innerText = currentUser.join_date || (currentUser.created_at ? new Date(currentUser.created_at).toLocaleDateString() : 'N/A');
-	
-	// Contract Progress
-	const startStr = currentUser.contract_start || currentUser.join_date || '2025-01-01';
-	const endStr = currentUser.contract_end || '2026-12-31';
-	const startDate = new Date(startStr);
-	const endDate = new Date(endStr);
-	const today = new Date();
+    // Profile details
+    document.getElementById('prof-name2').innerText = displayName;
+    document.getElementById('prof-email2').innerText = currentUser.email;
+    document.getElementById('prof-emp-id').innerText = currentUser.emp_id || currentUser.id || 'N/A';
+    document.getElementById('prof-phone').innerText = currentUser.phone || 'Not Provided';
+    document.getElementById('prof-id').innerText = currentUser.national_id || 'Not Provided';
+    document.getElementById('prof-reg').innerText = currentUser.join_date || (currentUser.created_at ? new Date(currentUser.created_at).toLocaleDateString() : 'N/A');
+    
+    const startStr = currentUser.contract_start || currentUser.join_date || '2025-01-01';
+    const endStr = currentUser.contract_end || '2026-12-31';
+    const startDate = new Date(startStr);
+    const endDate = new Date(endStr);
+    const today = new Date();
 
-	let progress = 0;
-	if (endDate > startDate) {
-	  progress = Math.min(100, Math.max(0, ((today - startDate) / (endDate - startDate)) * 100));
-	} else { progress = 100; }
+    let progress = 0;
+    if (endDate > startDate) {
+      progress = Math.min(100, Math.max(0, ((today - startDate) / (endDate - startDate)) * 100));
+    } else { progress = 100; }
 
-	document.getElementById('prof-contract-dates').innerText = `${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}`;
-	setTimeout(() => {
-	  document.getElementById('prof-contract-progress').style.width = `${progress}%`;
-	  document.getElementById('prof-contract-percent').innerText = `${Math.round(progress)}%`;
-	}, 300);
+    document.getElementById('prof-contract-dates').innerText = `${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}`;
+    setTimeout(() => {
+      document.getElementById('prof-contract-progress').style.width = `${progress}%`;
+      document.getElementById('prof-contract-percent').innerText = `${Math.round(progress)}%`;
+    }, 300);
 
-	document.getElementById('hr-app').classList.remove('hidden');
+    document.getElementById('hr-app').classList.remove('hidden');
 
-	await fetchMyProjectAndShift();
-	startGPS();
-	await checkActiveShiftState();
-	
-	loadTimesheetData();
-	calculatePayroll();
-	loadRequestsData();
-	loadDocuments();
-	loadNotifications();
+    await fetchMyProjectAndShift();
+    startGPS();
+    await checkActiveShiftState();
+    
+    loadTimesheetData();
+    calculatePayroll();
+    loadRequestsData();
+    loadDocuments();
+    loadNotifications();
   }
 
   // ==========================================
   // GPS & ATTENDANCE
   // ==========================================
   async function fetchMyProjectAndShift() {
-	try {
-	  const shifts = await sbFetch(`operix_shifts?select=*`).catch(()=>[]);
-	  const s = shifts.find(r => r.employee_email === currentUser.email || r.employee_name === currentUser.name) || shifts[0];
+    try {
+      const shifts = await sbFetch(`operix_shifts?select=*`).catch(()=>[]);
+      const s = shifts.find(r => r.employee_email === currentUser.email || r.employee_name === currentUser.name) || shifts[0];
 
-	  if (s) {
-		shiftLat = parseFloat(s.lat);
-		shiftLng = parseFloat(s.lng || s.lan); 
-		shiftRadius = parseInt(s.rad || s.radius || 150);
-		assignedProjectName = s.project_name || s.project || "Assigned Site";
-		shiftStartTime = s.timing || s.start_time || s.shift_start || '09:00';
-		grossSalaryGlobal = parseFloat(s.salary || s.gross_salary || 0);
+      if (s) {
+        shiftLat = parseFloat(s.lat);
+        shiftLng = parseFloat(s.lng || s.lan); 
+        shiftRadius = parseInt(s.rad || s.radius || 150);
+        assignedProjectName = s.project_name || s.project || "Assigned Site";
+        shiftStartTime = s.timing || s.start_time || s.shift_start || '09:00';
+        grossSalaryGlobal = parseFloat(s.salary || s.gross_salary || 0);
 
-		document.getElementById('assigned-project-name').innerText = `📍 ${assignedProjectName}`;
-	  } else {
-		document.getElementById('assigned-project-name').innerText = `📍 Open Roving`;
-	  }
-	} catch(e) { console.error("Shift fetch error", e); }
+        document.getElementById('assigned-project-name').innerText = `📍 ${assignedProjectName}`;
+      } else {
+        document.getElementById('assigned-project-name').innerText = `📍 Open Roving`;
+      }
+    } catch(e) { console.error("Shift fetch error", e); }
   }
 
   function calcDist(lat1, lon1, lat2, lon2) {
-	const R = 6371e3; 
-	const φ1 = lat1 * Math.PI/180, φ2 = lat2 * Math.PI/180;
-	const Δφ = (lat2-lat1) * Math.PI/180, Δλ = (lon2-lon1) * Math.PI/180;
-	const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
-	return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const R = 6371e3; 
+    const φ1 = lat1 * Math.PI/180, φ2 = lat2 * Math.PI/180;
+    const Δφ = (lat2-lat1) * Math.PI/180, Δλ = (lon2-lon1) * Math.PI/180;
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   }
 
   function startGPS() {
-	if (!navigator.geolocation) {
-	  document.getElementById('gps-status').textContent = 'GPS not supported.';
-	  return;
-	}
-	watchId = navigator.geolocation.watchPosition(pos => {
-	  const lat = pos.coords.latitude, lng = pos.coords.longitude;
-	  myCoords = `${lat.toFixed(6)},${lng.toFixed(6)}`;
-	  
-	  if (shiftLat && shiftLng) {
-		myDist = calcDist(lat, lng, shiftLat, shiftLng);
-		const inZone = myDist <= shiftRadius;
-		
-		document.getElementById('gps-status').textContent = inZone ? `Inside Zone (${myDist.toFixed(0)}m)` : `Outside Zone (${myDist.toFixed(0)}m)`;
-		document.getElementById('gps-status').style.color = inZone ? '#fff' : '#ffce20';
-		
-		updateClockButtons(inZone);
-	  } else {
-		document.getElementById('gps-status').textContent = 'Tracking Active (Anywhere)';
-		updateClockButtons(true);
-	  }
-	}, err => {
-	  document.getElementById('gps-status').textContent = '⚠️ GPS permission required.';
-	  document.getElementById('gps-status').style.color = 'var(--warning)';
-	}, { enableHighAccuracy: true, maximumAge: 10000 });
+    if (!navigator.geolocation) {
+      document.getElementById('gps-status').textContent = 'GPS not supported.';
+      return;
+    }
+    watchId = navigator.geolocation.watchPosition(pos => {
+      const lat = pos.coords.latitude, lng = pos.coords.longitude;
+      myCoords = `${lat.toFixed(6)},${lng.toFixed(6)}`;
+      
+      if (shiftLat && shiftLng) {
+        myDist = calcDist(lat, lng, shiftLat, shiftLng);
+        const inZone = myDist <= shiftRadius;
+        
+        document.getElementById('gps-status').textContent = inZone ? `Inside Zone (${myDist.toFixed(0)}m)` : `Outside Zone (${myDist.toFixed(0)}m)`;
+        document.getElementById('gps-status').style.color = inZone ? '#fff' : '#ffce20';
+        
+        updateClockButtons(inZone);
+      } else {
+        document.getElementById('gps-status').textContent = 'Tracking Active (Anywhere)';
+        updateClockButtons(true);
+      }
+    }, err => {
+      document.getElementById('gps-status').textContent = '⚠️ GPS permission required.';
+      document.getElementById('gps-status').style.color = 'var(--warning)';
+    }, { enableHighAccuracy: true, maximumAge: 10000 });
   }
 
   function updateClockButtons(inZone) {
-	if (hrClockedIn) {
-	  document.getElementById('btn-checkin').style.display = 'none';
-	  document.getElementById('btn-checkout').style.display = 'inline-flex';
-	  document.getElementById('btn-checkout').disabled = false;
-	} else {
-	  document.getElementById('btn-checkin').style.display = 'inline-flex';
-	  document.getElementById('btn-checkout').style.display = 'none';
-	  document.getElementById('btn-checkin').disabled = !inZone;
-	}
+    if (hrClockedIn) {
+      document.getElementById('btn-checkin').style.display = 'none';
+      document.getElementById('btn-checkout').style.display = 'inline-flex';
+      document.getElementById('btn-checkout').disabled = false;
+    } else {
+      document.getElementById('btn-checkin').style.display = 'inline-flex';
+      document.getElementById('btn-checkout').style.display = 'none';
+      document.getElementById('btn-checkin').disabled = !inZone;
+    }
   }
 
   async function checkActiveShiftState() {
-	try {
-	  const today = new Date().toISOString().split('T')[0];
-	  const records = await sbFetch(`operix_attendance?employee=eq.${encodeURIComponent(currentUser.name)}&order=submitted_at.desc&limit=1`, {method:'GET'});
-	  
-	  if (records && records.length > 0 && records[0].type === 'Check-In' && records[0].submitted_at.startsWith(today)) {
-		hrClockedIn = true;
-		currentAttendanceId = records[0].id;
-		document.getElementById('shift-location-info').innerHTML = `Active since <strong style="color:var(--success)">${new Date(records[0].submitted_at).toLocaleTimeString()}</strong>`;
-	  } else {
-		hrClockedIn = false;
-		currentAttendanceId = null;
-		document.getElementById('shift-location-info').innerText = "Ready to start shift.";
-	  }
-	  updateClockButtons(true); 
-	} catch(e) {}
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const records = await sbFetch(`operix_attendance?employee=eq.${encodeURIComponent(currentUser.name)}&order=submitted_at.desc&limit=1`, {method:'GET'});
+      
+      if (records && records.length > 0 && records[0].type === 'Check-In' && records[0].submitted_at.startsWith(today)) {
+        hrClockedIn = true;
+        currentAttendanceId = records[0].id;
+        document.getElementById('shift-location-info').innerHTML = `Active since <strong style="color:var(--success)">${new Date(records[0].submitted_at).toLocaleTimeString()}</strong>`;
+      } else {
+        hrClockedIn = false;
+        currentAttendanceId = null;
+        document.getElementById('shift-location-info').innerText = "Ready to start shift.";
+      }
+      updateClockButtons(true); 
+    } catch(e) {}
   }
 
   async function hrClockIn() {
-	if(!myCoords) return showToast("Awaiting GPS lock...", "error");
-	document.getElementById('btn-checkin').disabled = true;
-	try {
-	  await sbFetch('operix_attendance', {
-		method: 'POST', 
-		body: JSON.stringify({ employee: currentUser.name, type: 'Check-In', project: assignedProjectName, coords: myCoords, distance_m: Math.round(myDist), submitted_at: new Date().toISOString() })
-	  });
-	  showToast('Successfully punched in.', 'success');
-	  checkActiveShiftState();
-	  loadTimesheetData();
-	  calculatePayroll(); 
-	} catch(e) { showToast('Error recording punch.', 'error'); document.getElementById('btn-checkin').disabled = false; }
+    if(!myCoords) return showToast("Awaiting GPS lock...", "error");
+    document.getElementById('btn-checkin').disabled = true;
+    try {
+      await sbFetch('operix_attendance', {
+        method: 'POST', 
+        body: JSON.stringify({ employee: currentUser.name, type: 'Check-In', project: assignedProjectName, coords: myCoords, distance_m: Math.round(myDist), submitted_at: new Date().toISOString() })
+      });
+      showToast('Successfully punched in.', 'success');
+      checkActiveShiftState();
+      loadTimesheetData();
+      calculatePayroll(); 
+    } catch(e) { showToast('Error recording punch.', 'error'); document.getElementById('btn-checkin').disabled = false; }
   }
 
   async function hrClockOut() {
-	if(!myCoords) return showToast("Awaiting GPS lock...", "error");
-	document.getElementById('btn-checkout').disabled = true;
-	try {
-	  await sbFetch('operix_attendance', {
-		method: 'POST', 
-		body: JSON.stringify({ employee: currentUser.name, type: 'Check-Out', project: assignedProjectName, coords: myCoords, distance_m: Math.round(myDist), submitted_at: new Date().toISOString() })
-	  });
-	  showToast('Successfully punched out.', 'success');
-	  checkActiveShiftState();
-	  loadTimesheetData();
-	  calculatePayroll();
-	} catch(e) { showToast('Error recording punch.', 'error'); document.getElementById('btn-checkout').disabled = false; }
+    if(!myCoords) return showToast("Awaiting GPS lock...", "error");
+    document.getElementById('btn-checkout').disabled = true;
+    try {
+      await sbFetch('operix_attendance', {
+        method: 'POST', 
+        body: JSON.stringify({ employee: currentUser.name, type: 'Check-Out', project: assignedProjectName, coords: myCoords, distance_m: Math.round(myDist), submitted_at: new Date().toISOString() })
+      });
+      showToast('Successfully punched out.', 'success');
+      checkActiveShiftState();
+      loadTimesheetData();
+      calculatePayroll();
+    } catch(e) { showToast('Error recording punch.', 'error'); document.getElementById('btn-checkout').disabled = false; }
   }
 
   // ==========================================
   // TIMESHEET
   // ==========================================
   async function loadTimesheetData() {
-	try {
-	  const records = await sbFetch(`operix_attendance?employee=eq.${encodeURIComponent(currentUser.name)}&order=submitted_at.desc`, {method:'GET'});
-	  const tbody = document.getElementById('timesheet-list');
-	  
-	  if(!records || records.length === 0) {
-		tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px; color:var(--text-muted);">No attendance logs found.</td></tr>';
-		return;
-	  }
+    try {
+      const records = await sbFetch(`operix_attendance?employee=eq.${encodeURIComponent(currentUser.name)}&order=submitted_at.desc`, {method:'GET'});
+      const tbody = document.getElementById('timesheet-list');
+      
+      if(!records || records.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px; color:var(--text-muted);">No attendance logs found.</td></tr>';
+        return;
+      }
 
-	  const days = {};
-	  records.forEach(r => {
-		const dStr = r.submitted_at.split('T')[0];
-		if(!days[dStr]) days[dStr] = { in: null, out: null };
-		if(r.type === 'Check-In' && !days[dStr].in) days[dStr].in = r.submitted_at;
-		if(r.type === 'Check-Out' && !days[dStr].out) days[dStr].out = r.submitted_at;
-	  });
+      const days = {};
+      records.forEach(r => {
+        const dStr = r.submitted_at.split('T')[0];
+        if(!days[dStr]) days[dStr] = { in: null, out: null };
+        if(r.type === 'Check-In' && !days[dStr].in) days[dStr].in = r.submitted_at;
+        if(r.type === 'Check-Out' && !days[dStr].out) days[dStr].out = r.submitted_at;
+      });
 
-	  let html = '';
-	  Object.keys(days).sort().reverse().slice(0,10).forEach(dStr => {
-		const tIn = days[dStr].in ? new Date(days[dStr].in).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '--:--';
-		const tOut = days[dStr].out ? new Date(days[dStr].out).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : 'Active';
-		
-		let hrs = '--';
-		if(days[dStr].in && days[dStr].out) {
-		  const diffMs = new Date(days[dStr].out) - new Date(days[dStr].in);
-		  const diffHrs = (diffMs / (1000 * 60 * 60)).toFixed(1);
-		  hrs = `${diffHrs}h`;
-		}
+      let html = '';
+      Object.keys(days).sort().reverse().slice(0,10).forEach(dStr => {
+        const tIn = days[dStr].in ? new Date(days[dStr].in).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '--:--';
+        const tOut = days[dStr].out ? new Date(days[dStr].out).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : 'Active';
+        
+        let hrs = '--';
+        if(days[dStr].in && days[dStr].out) {
+          const diffMs = new Date(days[dStr].out) - new Date(days[dStr].in);
+          const diffHrs = (diffMs / (1000 * 60 * 60)).toFixed(1);
+          hrs = `${diffHrs}h`;
+        }
 
-		html += `<tr>
-			<td style="padding-left:16px;">${new Date(dStr).toLocaleDateString([], {month:'short', day:'numeric'})}</td>
-			<td><span class="time-mono">${tIn}</span></td>
-			<td><span class="time-mono">${tOut}</span></td>
-			<td style="padding-right:16px; font-weight:700; color:var(--primary);">${hrs}</td>
-		  </tr>`;
-	  });
-	  tbody.innerHTML = html;
-	} catch(e) { document.getElementById('timesheet-list').innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px; color:var(--danger);">Error loading data.</td></tr>'; }
+        html += `<tr>
+            <td style="padding-left:16px;">${new Date(dStr).toLocaleDateString([], {month:'short', day:'numeric'})}</td>
+            <td><span class="time-mono">${tIn}</span></td>
+            <td><span class="time-mono">${tOut}</span></td>
+            <td style="padding-right:16px; font-weight:700; color:var(--primary);">${hrs}</td>
+          </tr>`;
+      });
+      tbody.innerHTML = html;
+    } catch(e) { document.getElementById('timesheet-list').innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px; color:var(--danger);">Error loading data.</td></tr>'; }
   }
 
   // ==========================================
   // PAYROLL
   // ==========================================
   async function calculatePayroll() {
-	try {
-	  document.getElementById('payslip-list').innerHTML = '<div style="padding:16px; text-align:center; color:var(--text-muted); font-size:12px;">Calculating from attendance and salary...</div>';
+    try {
+      document.getElementById('payslip-list').innerHTML = '<div style="padding:16px; text-align:center; color:var(--text-muted); font-size:12px;">Calculating from attendance and salary...</div>';
 
-	  const grossSalary = grossSalaryGlobal > 0 ? grossSalaryGlobal : 4000; 
-	  const baseSalary = grossSalary * 0.60;
-	  const housing = grossSalary * 0.25;
-	  const transport = grossSalary * 0.15;
-	  const dailyRate = grossSalary > 0 ? (grossSalary / 30) : 133; 
-	  const minuteRate = dailyRate / (8 * 60);
+      const grossSalary = grossSalaryGlobal > 0 ? grossSalaryGlobal : 4000; 
+      const baseSalary = grossSalary * 0.60;
+      const housing = grossSalary * 0.25;
+      const transport = grossSalary * 0.15;
+      const dailyRate = grossSalary > 0 ? (grossSalary / 30) : 133; 
+      const minuteRate = dailyRate / (8 * 60);
 
-	  let attData = await sbFetch(`operix_attendance?employee=eq.${encodeURIComponent(currentUser.name)}&order=submitted_at.desc`).catch(() => []);
-	  
-	  // Filter out tasks or other unwanted things, ensure valid array
-	  if(!Array.isArray(attData)) attData = [];
+      let attData = await sbFetch(`operix_attendance?employee=eq.${encodeURIComponent(currentUser.name)}&order=submitted_at.desc`).catch(() => []);
+      if(!Array.isArray(attData)) attData = [];
 
-	  if(attData.length === 0) {
-		  document.getElementById('payslip-list').innerHTML = '<div style="padding:16px; text-align:center; color:var(--text-muted); font-size:12px;">No attendance records to calculate payroll.</div>';
-		  return;
-	  }
+      if(attData.length === 0) {
+          document.getElementById('payslip-list').innerHTML = '<div style="padding:16px; text-align:center; color:var(--text-muted); font-size:12px;">No attendance records to calculate payroll.</div>';
+          return;
+      }
 
-	  const monthlyData = {};
-	  attData.forEach(r => {
-		  if(r.type === 'Check-In' && r.submitted_at) {
-			  const date = new Date(r.submitted_at);
-			  const monthKey = date.toLocaleString('default', { month: 'long', year: 'numeric' });
-			  
-			  if(!monthlyData[monthKey]) monthlyData[monthKey] = { days: 0, lateMinutes: 0 };
-			  monthlyData[monthKey].days++; 
+      const monthlyData = {};
+      attData.forEach(r => {
+          if(r.type === 'Check-In' && r.submitted_at) {
+              const date = new Date(r.submitted_at);
+              const monthKey = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+              
+              if(!monthlyData[monthKey]) monthlyData[monthKey] = { days: 0, lateMinutes: 0 };
+              monthlyData[monthKey].days++; 
 
-			  const punchTime = date.toTimeString().substring(0,5); 
-			  if (punchTime > shiftStartTime) {
-				 const [pH, pM] = punchTime.split(':').map(Number);
-				 const [sH, sM] = shiftStartTime.split(':').map(Number);
-				 const diff = (pH*60 + pM) - (sH*60 + sM);
-				 if (diff > 0) monthlyData[monthKey].lateMinutes += diff;
-			  }
-		  }
-	  });
+              const punchTime = date.toTimeString().substring(0,5); 
+              if (punchTime > shiftStartTime) {
+                 const [pH, pM] = punchTime.split(':').map(Number);
+                 const [sH, sM] = shiftStartTime.split(':').map(Number);
+                 const diff = (pH*60 + pM) - (sH*60 + sM);
+                 if (diff > 0) monthlyData[monthKey].lateMinutes += diff;
+              }
+          }
+      });
 
-	  let html = '';
-	  Object.keys(monthlyData).forEach(month => {
-		  const stats = monthlyData[month];
-		  const standardWorkDays = 22; 
-		  const absentDays = Math.max(0, standardWorkDays - stats.days);
-		  const absentDeduction = absentDays * dailyRate;
-		  const lateDeduction = stats.lateMinutes * minuteRate;
-		  const totalDeductions = absentDeduction + lateDeduction;
-		  const calcPay = (grossSalary - totalDeductions).toFixed(2);
+      let html = '';
+      Object.keys(monthlyData).forEach(month => {
+          const stats = monthlyData[month];
+          const standardWorkDays = 22; 
+          const absentDays = Math.max(0, standardWorkDays - stats.days);
+          const absentDeduction = absentDays * dailyRate;
+          const lateDeduction = stats.lateMinutes * minuteRate;
+          const totalDeductions = absentDeduction + lateDeduction;
+          const calcPay = (grossSalary - totalDeductions).toFixed(2);
 
-		  html += `
-		  <div style="background:var(--input-bg); border-radius:12px; padding:16px; margin-bottom:12px;">
-			<div style="display:flex; justify-content:space-between; margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:8px;">
-			  <span style="font-weight:700; color:var(--primary); font-size:15px;">${month}</span>
-			  <span style="font-weight:800; font-size:15px; color:var(--success);">SAR ${calcPay}</span>
-			</div>
-			<div class="pay-grid">
-			  <div class="pay-item"><span class="pay-label">Gross Salary</span><span class="pay-val">SAR ${grossSalary.toFixed(2)}</span></div>
-			  <div class="pay-item"><span class="pay-label">Basic (60%)</span><span class="pay-val" style="color:var(--text-muted)">SAR ${baseSalary.toFixed(2)}</span></div>
-			  <div class="pay-item"><span class="pay-label">Housing (25%)</span><span class="pay-val" style="color:var(--text-muted)">SAR ${housing.toFixed(2)}</span></div>
-			  <div class="pay-item"><span class="pay-label">Transport (15%)</span><span class="pay-val" style="color:var(--text-muted)">SAR ${transport.toFixed(2)}</span></div>
-			</div>
-			<div style="background:var(--danger-bg); border-radius:8px; padding:12px; margin-top:12px;">
-			  <div style="font-size:11px; font-weight:700; color:var(--danger); margin-bottom:8px; text-transform:uppercase;">Deductions Policy</div>
-			  <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
-				<span>Absence (${absentDays} days)</span><span style="color:var(--danger)">- SAR ${absentDeduction.toFixed(2)}</span>
-			  </div>
-			  <div style="display:flex; justify-content:space-between; font-size:12px;">
-				<span>Late (${stats.lateMinutes} mins)</span><span style="color:var(--danger)">- SAR ${lateDeduction.toFixed(2)}</span>
-			  </div>
-			</div>
-		  </div>`;
-	  });
-	  
-	  if(html === '') html = '<div style="padding:16px; text-align:center; color:var(--text-muted); font-size:12px;">No valid logs found.</div>';
-	  document.getElementById('payslip-list').innerHTML = html;
-	} catch(e) { document.getElementById('payslip-list').innerHTML = '<div style="padding:16px; text-align:center; color:var(--text-muted); font-size:12px;">Error calculating payroll.</div>'; }
+          html += `
+          <div style="background:var(--input-bg); border-radius:12px; padding:16px; margin-bottom:12px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:8px;">
+              <span style="font-weight:700; color:var(--primary); font-size:15px;">${month}</span>
+              <span style="font-weight:800; font-size:15px; color:var(--success);">SAR ${calcPay}</span>
+            </div>
+            <div class="pay-grid">
+              <div class="pay-item"><span class="pay-label">Gross Salary</span><span class="pay-val">SAR ${grossSalary.toFixed(2)}</span></div>
+              <div class="pay-item"><span class="pay-label">Basic (60%)</span><span class="pay-val" style="color:var(--text-muted)">SAR ${baseSalary.toFixed(2)}</span></div>
+              <div class="pay-item"><span class="pay-label">Housing (25%)</span><span class="pay-val" style="color:var(--text-muted)">SAR ${housing.toFixed(2)}</span></div>
+              <div class="pay-item"><span class="pay-label">Transport (15%)</span><span class="pay-val" style="color:var(--text-muted)">SAR ${transport.toFixed(2)}</span></div>
+            </div>
+            <div style="background:var(--danger-bg); border-radius:8px; padding:12px; margin-top:12px;">
+              <div style="font-size:11px; font-weight:700; color:var(--danger); margin-bottom:8px; text-transform:uppercase;">Deductions Policy</div>
+              <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
+                <span>Absence (${absentDays} days)</span><span style="color:var(--danger)">- SAR ${absentDeduction.toFixed(2)}</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; font-size:12px;">
+                <span>Late (${stats.lateMinutes} mins)</span><span style="color:var(--danger)">- SAR ${lateDeduction.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>`;
+      });
+      
+      if(html === '') html = '<div style="padding:16px; text-align:center; color:var(--text-muted); font-size:12px;">No valid logs found.</div>';
+      document.getElementById('payslip-list').innerHTML = html;
+    } catch(e) { document.getElementById('payslip-list').innerHTML = '<div style="padding:16px; text-align:center; color:var(--text-muted); font-size:12px;">Error calculating payroll.</div>'; }
   }
 
   // ==========================================
   // REQUESTS (Dynamic Fields & File Upload)
   // ==========================================
   function toggleReqFields() {
-	const type = document.getElementById('req-type').value;
-	if (type === 'Overtime Request') {
-	  document.getElementById('req-dates-container').style.display = 'none';
-	  document.getElementById('req-ot-container').style.display = 'block';
-	} else {
-	  document.getElementById('req-dates-container').style.display = 'grid';
-	  document.getElementById('req-ot-container').style.display = 'none';
-	}
+    const type = document.getElementById('req-type').value;
+    if (type === 'Overtime Request') {
+      document.getElementById('req-dates-container').style.display = 'none';
+      document.getElementById('req-ot-container').style.display = 'block';
+    } else {
+      document.getElementById('req-dates-container').style.display = 'grid';
+      document.getElementById('req-ot-container').style.display = 'none';
+    }
   }
 
   async function submitRequest() {
-	const type = document.getElementById('req-type').value;
-	const notes = document.getElementById('req-notes').value.trim();
-	const fileInput = document.getElementById('req-attachment');
-	
-	let details = notes;
-	let start = null, end = null;
-	
-	if (type === 'Overtime Request') {
-	  const otHours = document.getElementById('req-ot-hours').value;
-	  if(!otHours) return showToast("Please enter OT hours.", "error");
-	  details = `OT Hours: ${otHours} | ${notes}`;
-	} else {
-	  start = document.getElementById('req-start').value;
-	  end = document.getElementById('req-end').value;
-	  if(!start) return showToast("Please provide a start date.", "error");
-	}
-	
-	const btn = document.getElementById('btn-submit-req');
-	btn.disabled = true; btn.textContent = 'Submitting…';
+    const type = document.getElementById('req-type').value;
+    const notes = document.getElementById('req-notes').value.trim();
+    const fileInput = document.getElementById('req-attachment');
+    
+    let details = notes;
+    let start = null, end = null;
+    
+    if (type === 'Overtime Request') {
+      const otHours = document.getElementById('req-ot-hours').value;
+      if(!otHours) return showToast("Please enter OT hours.", "error");
+      details = `OT Hours: ${otHours} | ${notes}`;
+    } else {
+      start = document.getElementById('req-start').value;
+      end = document.getElementById('req-end').value;
+      if(!start) return showToast("Please provide a start date.", "error");
+    }
+    
+    const btn = document.getElementById('btn-submit-req');
+    btn.disabled = true; btn.textContent = 'Submitting…';
 
-	try {
-	  // Handle Optional Attachment via GAS
-	  let attachmentUrl = null;
-	  if (fileInput && fileInput.files.length > 0) {
-		const file = fileInput.files[0];
-		const base64 = await new Promise(resolve => {
-		  const reader = new FileReader();
-		  reader.onload = e => resolve(e.target.result.split(',')[1]);
-		  reader.readAsDataURL(file);
-		});
-		
-		// Push file to GAS (Fire & Forget due to no-cors)
-		fetch(OPS_API, {
-		  method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
-		  body: JSON.stringify({ action: 'uploadAttachment', email: currentUser.email, filename: file.name, data: base64 })
-		});
-		attachmentUrl = 'Pending Processing via GAS';
-	  }
+    try {
+      let attachmentUrl = null;
+      if (fileInput && fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        const base64 = await new Promise(resolve => {
+          const reader = new FileReader();
+          reader.onload = e => resolve(e.target.result.split(',')[1]);
+          reader.readAsDataURL(file);
+        });
+        
+        fetch(OPS_API, {
+          method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({ action: 'uploadAttachment', email: currentUser.email, filename: file.name, data: base64 })
+        });
+        attachmentUrl = 'Pending Processing via GAS';
+      }
 
-	  // Save to Supabase
-	  if (type.toLowerCase().includes('leave') || type.toLowerCase().includes('time off')) {
-		const totalDays = (start && end) ? Math.ceil(Math.abs(new Date(end)-new Date(start))/(1000*60*60*24))+1 : 1;
-		await sbFetch('operix_hr_leaves', {
-		  method: 'POST',
-		  body: JSON.stringify({ employee_email: currentUser.email, leave_type: type, start_date: start, end_date: end, total_days: totalDays, status: 'Pending', manager_notes: details, created_at: new Date().toISOString() })
-		});
-	  } else {
-		await sbFetch('operix_requests', {
-		  method: 'POST',
-		  body: JSON.stringify({ employee_name: currentUser.name, employee_email: currentUser.email, type: type, details: details, amount: 0, attachment_url: attachmentUrl, status: 'Pending', created_at: new Date().toISOString() })
-		});
-	  }
-	  
-	  showToast('Request sent to HR!', 'success');
-	  document.getElementById('req-notes').value = '';
-	  if(fileInput) fileInput.value = '';
-	  loadRequestsData();
-	} catch(e) { showToast(e.message, 'error'); } 
-	finally { btn.disabled = false; btn.textContent = 'Send to HR'; }
+      if (type.toLowerCase().includes('leave') || type.toLowerCase().includes('time off')) {
+        const totalDays = (start && end) ? Math.ceil(Math.abs(new Date(end)-new Date(start))/(1000*60*60*24))+1 : 1;
+        await sbFetch('operix_hr_leaves', {
+          method: 'POST',
+          body: JSON.stringify({ employee_email: currentUser.email, leave_type: type, start_date: start || null, end_date: end || null, total_days: totalDays, status: 'Pending', manager_notes: details, created_at: new Date().toISOString() })
+        });
+      } else {
+        await sbFetch('operix_requests', {
+          method: 'POST',
+          body: JSON.stringify({ employee_name: currentUser.name, employee_email: currentUser.email, type: type, details: details, amount: 0, attachment_url: attachmentUrl, status: 'Pending', created_at: new Date().toISOString() })
+        });
+      }
+      
+      showToast('Request sent to HR!', 'success');
+      document.getElementById('req-notes').value = '';
+      if(fileInput) fileInput.value = '';
+      loadRequestsData();
+    } catch(e) { showToast(e.message, 'error'); } 
+    finally { btn.disabled = false; btn.textContent = 'Send to HR'; }
   }
 
   async function loadRequestsData() {
-	try {
-	  let [genReqs, leaveReqs] = await Promise.all([
-		sbFetch(`operix_requests?employee_email=eq.${encodeURIComponent(currentUser.email)}&order=created_at.desc`).catch(()=>[]),
-		sbFetch(`operix_hr_leaves?employee_email=eq.${encodeURIComponent(currentUser.email)}&order=created_at.desc`).catch(()=>[])
-	  ]);
-	  
-	  if(!Array.isArray(genReqs)) genReqs = [];
-	  if(!Array.isArray(leaveReqs)) leaveReqs = [];
-	  
-	  const allReqs = [
-		...genReqs.map(r=>({...r})),
-		...leaveReqs.map(r=>({type:r.leave_type, details:r.manager_notes||'', status:r.status, created_at:r.created_at}))
-	  ].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+    try {
+      let [genReqs, leaveReqs] = await Promise.all([
+        sbFetch(`operix_requests?employee_email=eq.${encodeURIComponent(currentUser.email)}&order=created_at.desc`).catch(()=>[]),
+        sbFetch(`operix_hr_leaves?employee_email=eq.${encodeURIComponent(currentUser.email)}&order=created_at.desc`).catch(()=>[])
+      ]);
+      
+      if(!Array.isArray(genReqs)) genReqs = [];
+      if(!Array.isArray(leaveReqs)) leaveReqs = [];
+      
+      const allReqs = [
+        ...genReqs.map(r=>({...r})),
+        ...leaveReqs.map(r=>({type:r.leave_type, details:r.manager_notes||'', status:r.status, created_at:r.created_at}))
+      ].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
 
-	  let html = '';
-	  if(allReqs.length > 0) {
-		allReqs.forEach(r => {
-		  let c = r.status === 'Approved' ? 'badge-green' : (r.status === 'Rejected' ? 'badge-red' : 'badge-amber');
-		  html += `<div class="list-item">
-			<div><div class="list-title">${r.type || 'General'}</div>
-			<div class="list-sub">${new Date(r.created_at).toLocaleDateString()}</div></div>
-			<span class="badge ${c}">${r.status}</span></div>`;
-		});
-	  } else { html = '<div style="padding:16px; text-align:center; color:var(--text-muted); font-size:12px;">No request history.</div>'; }
-	  document.getElementById('requests-list').innerHTML = html;
-	} catch(e) {}
+      let html = '';
+      if(allReqs.length > 0) {
+        allReqs.forEach(r => {
+          let c = r.status === 'Approved' ? 'badge-green' : (r.status === 'Rejected' ? 'badge-red' : 'badge-amber');
+          html += `<div class="list-item">
+            <div><div class="list-title">${r.type || 'General'}</div>
+            <div class="list-sub">${new Date(r.created_at).toLocaleDateString()}</div></div>
+            <span class="badge ${c}">${r.status}</span></div>`;
+        });
+      } else { html = '<div style="padding:16px; text-align:center; color:var(--text-muted); font-size:12px;">No request history.</div>'; }
+      document.getElementById('requests-list').innerHTML = html;
+    } catch(e) {}
   }
 
-  // ==========================================
-  // DOCUMENTS & PROFILE PHOTO
-  // ==========================================
   function loadDocuments() {
-	let html = '';
-	const docs = [
-	  { key: 'contract_url', name: 'Signed Contract' },
-	  { key: 'id_url', name: 'National ID / Iqama' },
-	  { key: 'cv_url', name: 'Uploaded Resume / CV' }
-	];
-	
-	docs.forEach(d => {
-	  if (currentUser[d.key]) { 
-		html += `<div class="list-item" style="background:var(--input-bg); padding:16px; border-radius:12px; margin-bottom:8px; border:none;">
-		  <div class="list-title" style="margin:0;">${d.name}</div>
-		  <a href="${currentUser[d.key]}" target="_blank" class="btn btn-primary" style="width:auto; padding:8px 16px; font-size:12px; text-decoration:none; box-shadow:none;">Open File</a></div>`;
-	  }
-	});
-	
-	if(html === '') html = '<div style="padding:16px; text-align:center; color:var(--text-muted); font-size:12px;">No official documents linked.</div>';
-	document.getElementById('documents-list').innerHTML = html;
+    let html = '';
+    const docs = [
+      { key: 'contract_url', name: 'Signed Contract' },
+      { key: 'id_url', name: 'National ID / Iqama' },
+      { key: 'cv_url', name: 'Uploaded Resume / CV' }
+    ];
+    
+    docs.forEach(d => {
+      if (currentUser[d.key]) { 
+        html += `<div class="list-item" style="background:var(--input-bg); padding:16px; border-radius:12px; margin-bottom:8px; border:none;">
+          <div class="list-title" style="margin:0;">${d.name}</div>
+          <a href="${currentUser[d.key]}" target="_blank" class="btn btn-primary" style="width:auto; padding:8px 16px; font-size:12px; text-decoration:none; box-shadow:none;">Open File</a></div>`;
+      }
+    });
+    
+    if(html === '') html = '<div style="padding:16px; text-align:center; color:var(--text-muted); font-size:12px;">No official documents linked.</div>';
+    document.getElementById('documents-list').innerHTML = html;
   }
 
   async function handlePhotoUpload(e) {
-	const file = e.target.files[0];
-	if(!file) return;
-	
-	const avatar = document.getElementById('prof-av2');
-	const oldHtml = avatar.innerHTML;
-	avatar.innerHTML = '<div style="font-size:10px; color:#fff;">...</div>'; 
+    const file = e.target.files[0];
+    if(!file) return;
+    
+    const avatar = document.getElementById('prof-av2');
+    const oldHtml = avatar.innerHTML;
+    avatar.innerHTML = '<div style="font-size:10px; color:#fff;">...</div>'; 
 
-	const reader = new FileReader();
-	reader.onload = async function(ev) {
-	  const base64 = ev.target.result.split(',')[1];
-	  try {
-		// Send to GAS
-		fetch(OPS_API, {
-		  method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
-		  body: JSON.stringify({ action: 'uploadPhoto', email: currentUser.email, filename: file.name, data: base64 })
-		});
-		
-		// Optimistic UI Update
-		avatar.innerHTML = '';
-		avatar.style.backgroundImage = `url(${ev.target.result})`;
-		avatar.style.backgroundSize = 'cover';
-		document.getElementById('nav-av').innerHTML = '';
-		document.getElementById('nav-av').style.backgroundImage = `url(${ev.target.result})`;
-		document.getElementById('nav-av').style.backgroundSize = 'cover';
-		
-		showToast('Photo uploaded successfully!', 'success');
-	  } catch(err) {
-		avatar.innerHTML = oldHtml;
-		showToast('Failed to upload photo', 'error');
-	  }
-	};
-	reader.readAsDataURL(file);
+    const reader = new FileReader();
+    reader.onload = async function(ev) {
+      const base64 = ev.target.result.split(',')[1];
+      try {
+        fetch(OPS_API, {
+          method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({ action: 'uploadPhoto', email: currentUser.email, filename: file.name, data: base64 })
+        });
+        
+        avatar.innerHTML = '';
+        avatar.style.backgroundImage = `url(${ev.target.result})`;
+        avatar.style.backgroundSize = 'cover';
+        document.getElementById('nav-av').innerHTML = '';
+        document.getElementById('nav-av').style.backgroundImage = `url(${ev.target.result})`;
+        document.getElementById('nav-av').style.backgroundSize = 'cover';
+        
+        showToast('Photo uploaded successfully!', 'success');
+      } catch(err) {
+        avatar.innerHTML = oldHtml;
+        showToast('Failed to upload photo', 'error');
+      }
+    };
+    reader.readAsDataURL(file);
   }
 
   // --- Real Notifications from tasks ---
   function toggleNotifications() {
-	const el = document.getElementById('notif-modal');
-	el.style.display = el.style.display === 'flex' ? 'none' : 'flex';
+    const el = document.getElementById('notif-modal');
+    el.style.display = el.style.display === 'flex' ? 'none' : 'flex';
   }
 
   async function loadNotifications() {
-	try {
-	  // Find tasks assigned to this employee (by email or name) that are not completed
-	  let tasks = await sbFetch(`operix_tasks?select=*`).catch(()=>[]);
-	  if (!Array.isArray(tasks)) tasks = [];
-	  
-	  const myTasks = tasks.filter(t => 
-		(t.assigned_to === currentUser.email || t.assigned_to === currentUser.name) && 
-		t.status !== 'Completed' && t.status !== 'Done'
-	  );
+    try {
+      let tasks = await sbFetch(`operix_tasks?select=*`).catch(()=>[]);
+      if (!Array.isArray(tasks)) tasks = [];
+      
+      const myTasks = tasks.filter(t => 
+        (t.assigned_to === currentUser.email || t.assigned_to === currentUser.name) && 
+        t.status !== 'Completed' && t.status !== 'Done'
+      );
 
-	  let html = '';
-	  if(myTasks.length > 0) {
-		document.getElementById('notif-badge').style.display = 'block';
-		myTasks.forEach(t => {
-		  html += `<div class="list-item" style="background:var(--primary-light); padding:12px; border-radius:8px; margin-bottom:8px; border:none;">
-			<div><div class="list-title" style="color:var(--primary);">Task: ${t.title || 'Assignment'}</div>
-			<div class="list-sub">Due: ${t.due_date ? new Date(t.due_date).toLocaleDateString() : 'ASAP'}</div></div></div>`;
-		});
-	  } else {
-		document.getElementById('notif-badge').style.display = 'none';
-		html = '<div style="padding:20px; text-align:center; color:var(--text-muted);">You are all caught up!</div>';
-	  }
-	  
-	  document.getElementById('notif-list').innerHTML = html;
-	} catch(e) {}
+      let html = '';
+      if(myTasks.length > 0) {
+        document.getElementById('notif-badge').style.display = 'block';
+        myTasks.forEach(t => {
+          html += `<div class="list-item" style="background:var(--primary-light); padding:12px; border-radius:8px; margin-bottom:8px; border:none;">
+            <div><div class="list-title" style="color:var(--primary);">Task: ${t.title || 'Assignment'}</div>
+            <div class="list-sub">Due: ${t.due_date ? new Date(t.due_date).toLocaleDateString() : 'ASAP'}</div></div></div>`;
+        });
+      } else {
+        document.getElementById('notif-badge').style.display = 'none';
+        html = '<div style="padding:20px; text-align:center; color:var(--text-muted);">You are all caught up!</div>';
+      }
+      
+      document.getElementById('notif-list').innerHTML = html;
+    } catch(e) {}
   }
 
   // NAVIGATION
   function switchNav(viewId, el) {
-	document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-	document.getElementById('view-' + viewId).classList.add('active');
-	document.querySelectorAll('.mobile-nav-item').forEach(n => n.classList.remove('active'));
-	el.classList.add('active');
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-' + viewId).classList.add('active');
+    document.querySelectorAll('.mobile-nav-item').forEach(n => n.classList.remove('active'));
+    el.classList.add('active');
   }
 </script>
 </body>
