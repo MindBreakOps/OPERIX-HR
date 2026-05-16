@@ -16,7 +16,7 @@
 
 <style>
 /* ═══════════════════════════════════════════════════
-   OPERIX HR — Premium SaaS Theme (Jisr Inspired)
+   OPERIX HR — Premium SaaS Theme
 ═══════════════════════════════════════════════════ */
 :root {
   --primary: #0F52BA; --primary-hover: #0b3d8c; --primary-light: #eff4ff;
@@ -44,6 +44,8 @@ body { font-family: var(--font); background: var(--bg-app); color: var(--text-ma
 .view-section { display: none; animation: fadeUp 0.3s ease-out; }
 .view-section.active { display: block; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes spin { 100% { transform: rotate(360deg); } }
+.spin { animation: spin 1s linear infinite; }
 
 /* ── TYPOGRAPHY & CARDS ── */
 h1, h2, h3 { color: var(--text-main); font-weight: 700; letter-spacing: -0.02em; }
@@ -123,7 +125,10 @@ input[type="file"].form-control { padding: 10px 14px; font-size: 12px; }
 	  <div id="face-overlay-box" style="position:absolute; inset:20px; border:2px dashed rgba(255,255,255,0.5); border-radius:50%;"></div>
 	</div>
 	
-	<div id="face-status" style="font-weight:700; color:var(--primary); font-size:14px; margin-bottom:16px;">Initializing camera...</div>
+	<div id="face-status" style="font-weight:700; color:var(--primary); font-size:14px; margin-bottom:16px; display:flex; justify-content:center; align-items:center;">
+	  <svg class="spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+	  Initializing camera...
+	</div>
 	<button class="btn btn-outline" onclick="closeFaceModal()">Cancel</button>
   </div>
 </div>
@@ -198,8 +203,8 @@ input[type="file"].form-control { padding: 10px 14px; font-size: 12px; }
 	<div style="display: flex; align-items: center; gap: 12px;">
 	  <div class="avatar-circle" id="nav-av">OP</div>
 	  <div>
-		<div style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Hello,</div>
-		<div style="font-weight: 800; font-size: 15px;" id="welcome-name">Loading...</div>
+		<div style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Good morning,</div>
+		<div style="font-weight: 800; font-size: 16px;" id="welcome-name">Loading...</div>
 	  </div>
 	</div>
 	
@@ -226,7 +231,7 @@ input[type="file"].form-control { padding: 10px 14px; font-size: 12px; }
 		
 		<div style="display: flex; width: 100%;">
 		  <button id="btn-action" class="btn" onclick="startFacePunch()" style="background: white; color: var(--primary); display: none; width: 100%;">
-			⏳ Initializing Camera...
+			<svg class="spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Initializing...
 		  </button>
 		</div>
 		
@@ -281,7 +286,7 @@ input[type="file"].form-control { padding: 10px 14px; font-size: 12px; }
 	  <h2 class="section-title">Payroll Center</h2>
 	  <div class="card">
 		<h3 style="font-size: 15px; margin-bottom: 8px;">Dynamic Pay Computation</h3>
-		<p class="subtitle" style="margin-bottom: 12px;">Based on 'operix_shifts' salary & timesheet policy</p>
+		<p class="subtitle" style="margin-bottom: 12px;">Based on exact shift timings & policy</p>
 		<div id="payslip-list">
 		  <div style="padding: 16px; text-align: center; color: var(--text-muted); font-size: 12px;">Calculating data...</div>
 		</div>
@@ -418,9 +423,6 @@ input[type="file"].form-control { padding: 10px 14px; font-size: 12px; }
 </div>
 
 <script>
-	// ══════════════════════════════════════════════
-// FORCE HTTPS (مطلوب لتشغيل الموقع والبوصلة)
-// ══════════════════════════════════════════════
 if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
 	location.replace(`https:${location.href.substring(location.protocol.length)}`);
 }
@@ -441,7 +443,8 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
   
   // GPS & Shift State
   let myCoords = '', myDist = 9999;
-  let shiftLat = null, shiftLng = null, shiftRadius = 150, shiftStartTime = '09:00';
+  let shiftLat = null, shiftLng = null, shiftRadius = 150;
+  let shiftStartTime = '09:00', shiftEndTime = '17:00';
   let assignedProjectName = "HQ Office";
   let grossSalaryGlobal = 0; 
   let hrClockedIn = false;
@@ -450,10 +453,10 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
 
   // Face ID State
   let faceMatcher = null;
-  let faceIdStatus = 'loading';
+  let faceIdStatus = 'loading'; // loading, ready, failed
 
   // ==========================================
-  // UTILS & TOASTS
+  // UTILS & AUDIO
   // ==========================================
   function showToast(msg, type = 'info') {
 	const el = document.createElement('div');
@@ -471,6 +474,18 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
 	el.innerHTML = `<span>${icon}</span> <span>${msg}</span>`;
 	document.getElementById('toast-container').appendChild(el);
 	setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateY(-20px)'; setTimeout(() => el.remove(), 400); }, 3000);
+  }
+
+  function playPunchSound(type) {
+	try {
+	  if ('speechSynthesis' in window) {
+		const text = type === 'Check-In' ? 'Thank you. Clock in successful.' : 'Thank you. Clock out successful.';
+		const msg = new SpeechSynthesisUtterance(text);
+		msg.lang = 'en-US';
+		msg.rate = 1.1;
+		window.speechSynthesis.speak(msg);
+	  }
+	} catch(e) {}
   }
 
   // ==========================================
@@ -516,7 +531,8 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
 	errEl.style.display = 'none';
 	if (!loginEmailInput || !passInput) { errEl.textContent = 'Please enter your credentials.'; errEl.style.display = 'block'; return; }
 	
-	btn.disabled = true; btn.textContent = 'Authenticating…';
+	btn.disabled = true; 
+	btn.innerHTML = '<svg class="spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Authenticating...';
 	
 	try {
 	  const authData = await sbAuth('token?grant_type=password', { email: loginEmailInput, password: passInput });
@@ -558,7 +574,10 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
 	  localStorage.removeItem('operix_jwt');
 	  errEl.textContent = e.message.includes('Invalid login credentials') ? 'Wrong email or password.' : e.message;
 	  errEl.style.display = 'block';
-	} finally { btn.disabled = false; btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Sign In'; }
+	} finally { 
+	  btn.disabled = false; 
+	  btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Sign In'; 
+	}
   }
 
   async function resendOTP() {
@@ -583,7 +602,8 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
 	if (code.length !== 6 && code !== '123456') { errEl.textContent='Enter the 6-digit code.'; errEl.style.display='block'; return; }
 	
 	const btn = document.getElementById('otp-btn');
-	btn.disabled = true; btn.textContent = 'Verifying…';
+	btn.disabled = true; 
+	btn.innerHTML = '<svg class="spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Verifying...';
 	
 	try {
 	  if (code !== '123456') {
@@ -600,7 +620,12 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
 	  currentUser = pendingLoginAccount;
 	  document.getElementById('otp-page').classList.add('hidden');
 	  initApp();
-	} catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; } finally { btn.disabled = false; btn.textContent = 'Verify & Proceed'; }
+	} catch(e) { 
+	  errEl.textContent = e.message; errEl.style.display = 'block'; 
+	} finally { 
+	  btn.disabled = false; 
+	  btn.innerHTML = 'Verify & Proceed'; 
+	}
   }
 
   function performLogout() {
@@ -635,9 +660,6 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
 	  document.getElementById('prof-av-text').innerText = initials;
 	}
 	
-	document.getElementById('job-title').innerText = currentUser.job_title || currentUser.role || 'Staff Member';
-	document.getElementById('job-dept').innerText = currentUser.department || 'HQ';
-
 	document.getElementById('prof-name2').innerText = displayName;
 	document.getElementById('prof-email2').innerText = currentUser.email;
 	document.getElementById('prof-emp-id').innerText = currentUser.emp_id || currentUser.id || 'N/A';
@@ -678,7 +700,7 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
   }
 
   // ==========================================
-  // FACE RECOGNITION (Google Drive CORS Fix)
+  // FACE RECOGNITION LOGIC 
   // ==========================================
   async function initFaceID() {
 	let imgUrl = currentUser.photo_url || currentUser.photo;
@@ -709,8 +731,7 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
 		faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
 	  ]);
 
-	  // Uses wsrv.nl to force CORS headers to bypass Google Drive blocks
-	  const proxyUrl = `https://wsrv.nl/?url=${encodeURIComponent(imgUrl)}`;
+	  const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(imgUrl)}`;
 	  
 	  const img = new Image();
 	  img.crossOrigin = 'Anonymous';
@@ -746,7 +767,8 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
 	document.getElementById('face-modal').style.display = 'flex';
 	const video = document.getElementById('face-video');
 	const status = document.getElementById('face-status');
-	status.innerText = "Starting camera...";
+	
+	status.innerHTML = `<svg class="spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Starting camera...`;
 	status.style.color = "var(--primary)";
 
 	try {
@@ -754,7 +776,8 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
 	  video.srcObject = stream;
 
 	  video.onplay = async () => {
-		status.innerText = "Scanning face...";
+		status.innerHTML = `<svg class="spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Scanning face...`;
+		
 		setTimeout(async () => {
 		  const canvas = document.createElement('canvas');
 		  canvas.width = video.videoWidth; canvas.height = video.videoHeight;
@@ -763,7 +786,7 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
 		  const detection = await faceapi.detectSingleFace(canvas).withFaceLandmarks().withFaceDescriptor();
 
 		  if (!detection) {
-			status.innerText = "No face detected. Please try again.";
+			status.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> No face detected.`;
 			status.style.color = "var(--danger)";
 			setTimeout(closeFaceModal, 2000);
 			return;
@@ -772,26 +795,26 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
 		  if (faceMatcher) {
 			const match = faceMatcher.findBestMatch(detection.descriptor);
 			if (match.label !== 'unknown') {
-			  status.innerText = `Verified! Punching ${type === 'Check-In' ? 'in' : 'out'}...`;
+			  status.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><polyline points="20 6 9 17 4 12"/></svg> Identity Verified!`;
 			  status.style.color = "var(--success)";
 			  setTimeout(() => { closeFaceModal(); executePunch(type); }, 1000);
 			} else {
-			  status.innerText = "Face does not match profile photo.";
+			  status.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Face does not match profile.`;
 			  status.style.color = "var(--danger)";
 			  setTimeout(closeFaceModal, 2000);
 			}
 		  } else {
-			// Backup: We verified a human face is there, but couldn't verify identity due to Google Drive CORS.
-			status.innerText = `Human verified! Punching ${type === 'Check-In' ? 'in' : 'out'}...`;
+			// Backup validation if photo failed to load but live human face is detected
+			status.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><polyline points="20 6 9 17 4 12"/></svg> Face Scanned.`;
 			status.style.color = "var(--warning)";
 			setTimeout(() => { closeFaceModal(); executePunch(type); }, 1000);
 		  }
 		}, 1500); 
 	  };
 	} catch(e) { 
-	  status.innerText = "Camera access denied."; 
+	  status.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Camera access denied.`;
 	  status.style.color = "var(--danger)"; 
-	  setTimeout(closeFaceModal, 2000);
+	  setTimeout(closeFaceModal, 3000);
 	}
   }
 
@@ -823,6 +846,7 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
 		shiftRadius = parseInt(s.radius || s.rad || 150);
 		assignedProjectName = s.project || s.location_name || "Assigned Site";
 		shiftStartTime = s.shift_start || '09:00';
+		shiftEndTime = s.shift_end || '17:00';
 		grossSalaryGlobal = parseFloat(s.monthly_salary || 0);
 
 		const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -878,7 +902,7 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
 		updateClockButtons(true);
 	  }
 	}, err => {
-	  document.getElementById('gps-status').textContent = '⚠️ GPS permission required.';
+	  document.getElementById('gps-status').innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block; vertical-align:middle; margin-right:4px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> GPS permission required.';
 	  document.getElementById('gps-status').style.color = 'var(--warning)';
 	}, { enableHighAccuracy: true, maximumAge: 10000 });
   }
@@ -892,10 +916,10 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
 	   btn.style.color = 'white';
 	   
 	   if (faceIdStatus === 'loading') {
-		  btn.innerHTML = '⏳ Loading AI...';
+		  btn.innerHTML = '<svg class="spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Loading AI...';
 		  btn.disabled = true;
 	   } else {
-		  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><circle cx="15.5" cy="8.5" r="1.5"/><path d="M9 15c1.5 2 4.5 2 6 0"/></svg> Face Punch Out';
+		  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Face Punch Out';
 		  btn.disabled = !inZone;
 	   }
 	} else {
@@ -903,7 +927,7 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
 	   btn.style.color = 'var(--primary)';
 	   
 	   if (faceIdStatus === 'loading') {
-		  btn.innerHTML = '⏳ Loading AI...';
+		  btn.innerHTML = '<svg class="spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Loading AI...';
 		  btn.disabled = true;
 	   } else {
 		  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><circle cx="15.5" cy="8.5" r="1.5"/><path d="M9 15c1.5 2 4.5 2 6 0"/></svg> Face Punch In';
@@ -938,7 +962,10 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
 		method: 'POST', 
 		body: JSON.stringify({ employee: currentUser.name, type: type, project: assignedProjectName, coords: myCoords, distance_m: Math.round(myDist), submitted_at: new Date().toISOString() })
 	  });
+	  
+	  playPunchSound(type); // Speak success via phone speakers
 	  showToast(`Successfully punched ${type === 'Check-In' ? 'in' : 'out'}.`, 'success');
+	  
 	  checkActiveShiftState();
 	  loadTimesheetData();
 	  calculatePayroll(); 
@@ -989,20 +1016,22 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
   }
 
   // ==========================================
-  // PAYROLL
+  // PAYROLL ENGINE (Late / Early Adjustments)
   // ==========================================
   async function calculatePayroll() {
 	try {
-	  document.getElementById('payslip-list').innerHTML = '<div style="padding:16px; text-align:center; color:var(--text-muted); font-size:12px;">Calculating from attendance and salary...</div>';
+	  document.getElementById('payslip-list').innerHTML = '<div style="padding:16px; text-align:center; color:var(--text-muted); font-size:12px;"><svg class="spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px; vertical-align:middle;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Calculating exact hours...</div>';
 
 	  const grossSalary = grossSalaryGlobal > 0 ? grossSalaryGlobal : 4000; 
 	  const baseSalary = grossSalary * 0.60;
 	  const housing = grossSalary * 0.25;
 	  const transport = grossSalary * 0.15;
+	  
+	  const standardWorkDays = 22;
 	  const dailyRate = grossSalary > 0 ? (grossSalary / 30) : 133; 
-	  const minuteRate = dailyRate / (8 * 60);
+	  const penaltyRatePerMin = 30 / 60; // 30 SAR per hour
 
-	  let attData = await sbFetch(`operix_attendance?employee=eq.${encodeURIComponent(currentUser.name)}&order=submitted_at.desc`).catch(() => []);
+	  let attData = await sbFetch(`operix_attendance?employee=eq.${encodeURIComponent(currentUser.name)}&order=submitted_at.asc`).catch(() => []);
 	  if(!Array.isArray(attData)) attData = [];
 
 	  if(attData.length === 0) {
@@ -1010,34 +1039,56 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
 		  return;
 	  }
 
-	  const monthlyData = {};
+	  const daysData = {};
 	  attData.forEach(r => {
-		  if(r.type === 'Check-In' && r.submitted_at) {
-			  const date = new Date(r.submitted_at);
-			  const monthKey = date.toLocaleString('default', { month: 'long', year: 'numeric' });
-			  
-			  if(!monthlyData[monthKey]) monthlyData[monthKey] = { days: 0, lateMinutes: 0 };
-			  monthlyData[monthKey].days++; 
+		  if (!r.submitted_at) return;
+		  const dObj = new Date(r.submitted_at);
+		  const dStr = dObj.toISOString().split('T')[0];
+		  const mKey = dObj.toLocaleString('default', { month: 'long', year: 'numeric' });
 
-			  const punchTime = date.toTimeString().substring(0,5); 
-			  if (punchTime > shiftStartTime) {
-				 const [pH, pM] = punchTime.split(':').map(Number);
-				 const [sH, sM] = shiftStartTime.split(':').map(Number);
-				 const diff = (pH*60 + pM) - (sH*60 + sM);
-				 if (diff > 0) monthlyData[monthKey].lateMinutes += diff;
-			  }
+		  if(!daysData[dStr]) daysData[dStr] = { month: mKey, in: null, out: null };
+
+		  if(r.type === 'Check-In') {
+			  if(!daysData[dStr].in || dObj < daysData[dStr].in) daysData[dStr].in = dObj;
+		  }
+		  if(r.type === 'Check-Out') {
+			  if(!daysData[dStr].out || dObj > daysData[dStr].out) daysData[dStr].out = dObj;
+		  }
+	  });
+
+	  const monthlyData = {};
+	  Object.values(daysData).forEach(day => {
+		  const m = day.month;
+		  if(!monthlyData[m]) monthlyData[m] = { daysAttended: 0, lateMins: 0, earlyMins: 0 };
+		  
+		  monthlyData[m].daysAttended++;
+
+		  const [sH, sM] = shiftStartTime.split(':').map(Number);
+		  const [eH, eM] = shiftEndTime.split(':').map(Number);
+
+		  if(day.in) {
+			  const diffMins = (day.in.getHours() * 60 + day.in.getMinutes()) - (sH * 60 + sM);
+			  if(diffMins > 0) monthlyData[m].lateMins += diffMins;
+		  }
+
+		  if(day.out) {
+			  const diffMins = (eH * 60 + eM) - (day.out.getHours() * 60 + day.out.getMinutes());
+			  if(diffMins > 0) monthlyData[m].earlyMins += diffMins;
 		  }
 	  });
 
 	  let html = '';
 	  Object.keys(monthlyData).forEach(month => {
 		  const stats = monthlyData[month];
-		  const standardWorkDays = 22; 
-		  const absentDays = Math.max(0, standardWorkDays - stats.days);
+		  
+		  const absentDays = Math.max(0, standardWorkDays - stats.daysAttended);
 		  const absentDeduction = absentDays * dailyRate;
-		  const lateDeduction = stats.lateMinutes * minuteRate;
-		  const totalDeductions = absentDeduction + lateDeduction;
-		  const calcPay = (grossSalary - totalDeductions).toFixed(2);
+		  const lateDeduction = stats.lateMins * penaltyRatePerMin;
+		  const earlyDeduction = stats.earlyMins * penaltyRatePerMin;
+		  const totalDeductions = absentDeduction + lateDeduction + earlyDeduction;
+		  
+		  let calcPay = (grossSalary - totalDeductions).toFixed(2);
+		  if (calcPay < 0) calcPay = "0.00";
 
 		  html += `
 		  <div style="background:var(--input-bg); border-radius:12px; padding:16px; margin-bottom:12px;">
@@ -1052,12 +1103,15 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
 			  <div class="pay-item"><span class="pay-label">Transport (15%)</span><span class="pay-val" style="color:var(--text-muted)">SAR ${transport.toFixed(2)}</span></div>
 			</div>
 			<div style="background:var(--danger-bg); border-radius:8px; padding:12px; margin-top:12px;">
-			  <div style="font-size:11px; font-weight:700; color:var(--danger); margin-bottom:8px; text-transform:uppercase;">Deductions Policy</div>
+			  <div style="font-size:11px; font-weight:700; color:var(--danger); margin-bottom:8px; text-transform:uppercase;">Deductions (30 SAR/Hr Penalty)</div>
 			  <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
 				<span>Absence (${absentDays} days)</span><span style="color:var(--danger)">- SAR ${absentDeduction.toFixed(2)}</span>
 			  </div>
+			  <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
+				<span>Late In (${(stats.lateMins/60).toFixed(1)} hrs)</span><span style="color:var(--danger)">- SAR ${lateDeduction.toFixed(2)}</span>
+			  </div>
 			  <div style="display:flex; justify-content:space-between; font-size:12px;">
-				<span>Late (${stats.lateMinutes} mins)</span><span style="color:var(--danger)">- SAR ${lateDeduction.toFixed(2)}</span>
+				<span>Early Out (${(stats.earlyMins/60).toFixed(1)} hrs)</span><span style="color:var(--danger)">- SAR ${earlyDeduction.toFixed(2)}</span>
 			  </div>
 			</div>
 		  </div>`;
@@ -1069,7 +1123,7 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
   }
 
   // ==========================================
-  // REQUESTS
+  // REQUESTS (Dynamic Fields & File Upload)
   // ==========================================
   function toggleReqFields() {
 	const type = document.getElementById('req-type').value;
@@ -1205,20 +1259,11 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
 	reader.onload = async function(ev) {
 	  const base64 = ev.target.result.split(',')[1];
 	  try {
-		// Send base64 image to GAS to upload to Drive and potentially update Supabase
 		fetch(OPS_API, {
 		  method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
 		  body: JSON.stringify({ action: 'uploadPhoto', email: currentUser.email, filename: file.name, data: base64 })
 		});
 		
-		// Optimistically patch the accounts table with the base64 URL so Face ID works instantly
-		// If your GAS script handles this, this ensures immediate UI update.
-		await sbFetch(`accounts?id=eq.${currentUser.id}`, {
-		  method: 'PATCH',
-		  body: JSON.stringify({ photo_url: ev.target.result })
-		});
-
-		// Update UI
 		avatar.innerHTML = '';
 		avatar.style.backgroundImage = `url(${ev.target.result})`;
 		avatar.style.backgroundSize = 'cover';
@@ -1227,11 +1272,6 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost' && locat
 		document.getElementById('nav-av').style.backgroundSize = 'cover';
 		
 		showToast('Photo uploaded successfully!', 'success');
-		
-		// Refresh currentUser photo_url state and re-init Face ID
-		currentUser.photo_url = ev.target.result;
-		initFaceID();
-
 	  } catch(err) {
 		avatar.innerHTML = oldHtml;
 		showToast('Failed to upload photo', 'error');
