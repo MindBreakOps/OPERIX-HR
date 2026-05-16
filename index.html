@@ -9,9 +9,9 @@
 <title>OPERIX | Employee Space</title>
 
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/MindBreakOps/LX-Permits/main/hr.png">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/MindBreakOps/LX-Permits/main/hro.png">
 
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 
 <style>
@@ -61,7 +61,7 @@ input[type="file"].form-control { padding: 10px 14px; font-size: 12px; }
 /* ── BUTTONS ── */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 14px; font-size: 14px; font-weight: 700; border-radius: var(--radius-lg); cursor: pointer; border: none; width: 100%; transition: 0.2s; }
 .btn-primary { background: var(--primary); color: var(--text-inverse); box-shadow: 0 6px 16px rgba(15, 82, 186, 0.2); }
-.btn-primary:disabled { background: var(--text-muted); box-shadow: none; cursor: not-allowed; }
+.btn-primary:disabled { opacity: 0.7; cursor: not-allowed; }
 .btn-outline { background: var(--input-bg); color: var(--text-main); font-weight: 600; }
 
 /* ── TOPBAR & NAV ── */
@@ -224,23 +224,13 @@ input[type="file"].form-control { padding: 10px 14px; font-size: 12px; }
 		  </div>
 		</div>
 		
-		<div style="display: flex; gap: 10px;">
-		  <button id="btn-checkin" class="btn" onclick="hrClockIn()" style="background: white; color: var(--primary); display: none;">
-			<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> 
-			Clock In
-		  </button>
-		  
-		  <button id="btn-face-checkin" class="btn" onclick="startFacePunch('Check-In')" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); display: none;">
-			<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><circle cx="15.5" cy="8.5" r="1.5"/><path d="M9 15c1.5 2 4.5 2 6 0"/></svg> 
-			Face ID
-		  </button>
-		  
-		  <button id="btn-checkout" class="btn" onclick="hrClockOut()" style="background: var(--danger); color: white; border: 1px solid rgba(255,255,255,0.2); display: none;">
-			<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> 
-			Clock Out
+		<div style="display: flex; width: 100%;">
+		  <button id="btn-action" class="btn" onclick="startFacePunch()" style="background: white; color: var(--primary); display: none; width: 100%;">
+			⏳ Initializing Camera...
 		  </button>
 		</div>
-		<div style="font-size: 12px; opacity: 0.9; margin-top: 12px; font-weight: 500; text-align: center;" id="shift-location-info">Initializing tracker...</div>
+		
+		<div style="font-size: 12px; opacity: 0.9; margin-top: 12px; font-weight: 500; text-align: center;" id="shift-location-info">Analyzing tracker...</div>
 	  </div>
 
 	  <h3 class="section-title">My Assignment</h3>
@@ -432,7 +422,7 @@ input[type="file"].form-control { padding: 10px 14px; font-size: 12px; }
   // PWA & CONFIG
   // ==========================================
   if ('serviceWorker' in navigator) {
-	window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(e => console.log('SW Error')); });
+	window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(e => console.log('SW Error')); });
   }
 
   const SUPABASE_URL  = 'https://lzobdqlbsxjlupyewdqq.supabase.co';
@@ -454,7 +444,7 @@ input[type="file"].form-control { padding: 10px 14px; font-size: 12px; }
 
   // Face ID State
   let faceMatcher = null;
-  let pendingPunchType = null;
+  let faceIdStatus = 'loading';
 
   // ==========================================
   // UTILS & TOASTS
@@ -639,7 +629,9 @@ input[type="file"].form-control { padding: 10px 14px; font-size: 12px; }
 	  document.getElementById('prof-av-text').innerText = initials;
 	}
 	
-	// Profile details
+	document.getElementById('job-title').innerText = currentUser.job_title || currentUser.role || 'Staff Member';
+	document.getElementById('job-dept').innerText = currentUser.department || 'HQ';
+
 	document.getElementById('prof-name2').innerText = displayName;
 	document.getElementById('prof-email2').innerText = currentUser.email;
 	document.getElementById('prof-emp-id').innerText = currentUser.emp_id || currentUser.id || 'N/A';
@@ -680,17 +672,26 @@ input[type="file"].form-control { padding: 10px 14px; font-size: 12px; }
   }
 
   // ==========================================
-  // FACE RECOGNITION LOGIC (Strict Google Drive Handler)
+  // FACE RECOGNITION (Google Drive CORS Fix)
   // ==========================================
   async function initFaceID() {
 	let imgUrl = currentUser.photo_url || currentUser.photo;
-	if (!imgUrl) return; 
+	
+	if (!imgUrl) {
+	  faceIdStatus = 'failed';
+	  updateClockButtons(myDist <= shiftRadius);
+	  return; 
+	}
 
-	// Convert standard Google Drive /view links into direct raw image downloads
 	if (imgUrl.includes('drive.google.com/file/d/')) {
 		const match = imgUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
 		if (match && match[1]) {
-			imgUrl = `https://drive.google.com/uc?export=view&id=${match[1]}`;
+			imgUrl = `https://drive.google.com/uc?export=download&id=${match[1]}`;
+		}
+	} else if (imgUrl.includes('drive.google.com/open?id=')) {
+		const match = imgUrl.match(/id=([a-zA-Z0-9_-]+)/);
+		if (match && match[1]) {
+			imgUrl = `https://drive.google.com/uc?export=download&id=${match[1]}`;
 		}
 	}
 
@@ -702,8 +703,8 @@ input[type="file"].form-control { padding: 10px 14px; font-size: 12px; }
 		faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
 	  ]);
 
-	  // Route through a free CORS proxy so face-api can read the raw pixels without being blocked
-	  const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(imgUrl)}`;
+	  // Uses wsrv.nl to force CORS headers to bypass Google Drive blocks
+	  const proxyUrl = `https://wsrv.nl/?url=${encodeURIComponent(imgUrl)}`;
 	  
 	  const img = new Image();
 	  img.crossOrigin = 'Anonymous';
@@ -715,27 +716,26 @@ input[type="file"].form-control { padding: 10px 14px; font-size: 12px; }
 		  if (refDetection) {
 			const labeledDescriptor = new faceapi.LabeledFaceDescriptors(currentUser.name, [refDetection.descriptor]);
 			faceMatcher = new faceapi.FaceMatcher(labeledDescriptor, 0.55); 
-			
-			// Show Face Check-in Button if successfully trained
-			document.getElementById('btn-face-checkin').style.display = 'inline-flex';
-			document.getElementById('btn-checkin').style.display = 'none'; // Hide manual GPS checkin
+			faceIdStatus = 'ready';
+		  } else {
+			faceIdStatus = 'failed';
 		  }
-		} catch(err) { console.warn("Face profile extraction failed.", err); }
+		  updateClockButtons(myDist <= shiftRadius);
+		} catch(err) { 
+		  faceIdStatus = 'failed'; 
+		  updateClockButtons(myDist <= shiftRadius); 
+		}
 	  };
+	  img.onerror = () => { faceIdStatus = 'failed'; updateClockButtons(myDist <= shiftRadius); };
 	} catch (e) {
-	  console.warn("Face ID skipped. Proxy or CORS blocked the request.");
+	  faceIdStatus = 'failed';
+	  updateClockButtons(myDist <= shiftRadius);
 	}
   }
 
-  async function startFacePunch(type) {
-	pendingPunchType = type;
+  async function startFacePunch() {
+	const type = hrClockedIn ? 'Check-Out' : 'Check-In';
 	if(!myCoords) return showToast("Awaiting GPS lock...", "error");
-
-	if (!faceMatcher) {
-	  showToast("Face ID not setup. Using Standard GPS.", "warning");
-	  executePunch(type);
-	  return;
-	}
 
 	document.getElementById('face-modal').style.display = 'flex';
 	const video = document.getElementById('face-video');
@@ -757,21 +757,28 @@ input[type="file"].form-control { padding: 10px 14px; font-size: 12px; }
 		  const detection = await faceapi.detectSingleFace(canvas).withFaceLandmarks().withFaceDescriptor();
 
 		  if (!detection) {
-			status.innerText = "No face detected.";
+			status.innerText = "No face detected. Please try again.";
 			status.style.color = "var(--danger)";
 			setTimeout(closeFaceModal, 2000);
 			return;
 		  }
 
-		  const match = faceMatcher.findBestMatch(detection.descriptor);
-		  if (match.label !== 'unknown') {
-			status.innerText = `Verified! Punching ${type === 'Check-In' ? 'in' : 'out'}...`;
-			status.style.color = "var(--success)";
-			setTimeout(() => { closeFaceModal(); executePunch(pendingPunchType); }, 1000);
+		  if (faceMatcher) {
+			const match = faceMatcher.findBestMatch(detection.descriptor);
+			if (match.label !== 'unknown') {
+			  status.innerText = `Verified! Punching ${type === 'Check-In' ? 'in' : 'out'}...`;
+			  status.style.color = "var(--success)";
+			  setTimeout(() => { closeFaceModal(); executePunch(type); }, 1000);
+			} else {
+			  status.innerText = "Face does not match profile photo.";
+			  status.style.color = "var(--danger)";
+			  setTimeout(closeFaceModal, 2000);
+			}
 		  } else {
-			status.innerText = "Face does not match profile.";
-			status.style.color = "var(--danger)";
-			setTimeout(closeFaceModal, 2000);
+			// Backup: We verified a human face is there, but couldn't verify identity due to Google Drive CORS.
+			status.innerText = `Human verified! Punching ${type === 'Check-In' ? 'in' : 'out'}...`;
+			status.style.color = "var(--warning)";
+			setTimeout(() => { closeFaceModal(); executePunch(type); }, 1000);
 		  }
 		}, 1500); 
 	  };
@@ -795,14 +802,14 @@ input[type="file"].form-control { padding: 10px 14px; font-size: 12px; }
 	try {
 	  const shifts = await sbFetch(`operix_shifts?select=*`).catch(()=>[]);
 	  
-	  const myName = (currentUser.name || '').toLowerCase().trim();
+	  const myName = (currentUser.name || '').toLowerCase().replace(/[^a-z0-9]/gi, '');
 	  const myEmail = (currentUser.email || '').toLowerCase().trim();
 
-	  // Forgiving match to fix "Not Assigned"
-	  const s = shifts.find(r => 
-		(r.employee_name && r.employee_name.toLowerCase().trim() === myName) ||
-		(r.employee_email && r.employee_email.toLowerCase().trim() === myEmail)
-	  );
+	  const s = shifts.find(r => {
+		const rowName = (r.employee_name || '').toLowerCase().replace(/[^a-z0-9]/gi, '');
+		const rowEmail = (r.employee_email || '').toLowerCase().trim();
+		return (rowName && rowName === myName) || (rowEmail && rowEmail === myEmail);
+	  });
 
 	  if (s) {
 		shiftLat = parseFloat(s.lat);
@@ -871,25 +878,31 @@ input[type="file"].form-control { padding: 10px 14px; font-size: 12px; }
   }
 
   function updateClockButtons(inZone) {
+	const btn = document.getElementById('btn-action');
+	btn.style.display = 'inline-flex';
+	
 	if (hrClockedIn) {
-	  document.getElementById('btn-checkin').style.display = 'none';
-	  if(faceMatcher) document.getElementById('btn-face-checkin').style.display = 'none';
-	  document.getElementById('btn-checkout').style.display = 'inline-flex';
-	  document.getElementById('btn-checkout').disabled = false;
+	   btn.style.background = 'var(--danger)';
+	   btn.style.color = 'white';
+	   
+	   if (faceIdStatus === 'loading') {
+		  btn.innerHTML = '⏳ Loading AI...';
+		  btn.disabled = true;
+	   } else {
+		  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><circle cx="15.5" cy="8.5" r="1.5"/><path d="M9 15c1.5 2 4.5 2 6 0"/></svg> Face Punch Out';
+		  btn.disabled = !inZone;
+	   }
 	} else {
-	  // If Face ID trained successfully, show that instead of GPS manual
-	  if (faceMatcher) {
-		document.getElementById('btn-face-checkin').style.display = 'inline-flex';
-		document.getElementById('btn-checkin').style.display = 'none';
-	  } else {
-		document.getElementById('btn-checkin').style.display = 'inline-flex';
-		document.getElementById('btn-face-checkin').style.display = 'none';
-	  }
-	  
-	  document.getElementById('btn-checkout').style.display = 'none';
-	  
-	  document.getElementById('btn-checkin').disabled = !inZone;
-	  document.getElementById('btn-face-checkin').disabled = !inZone;
+	   btn.style.background = 'white';
+	   btn.style.color = 'var(--primary)';
+	   
+	   if (faceIdStatus === 'loading') {
+		  btn.innerHTML = '⏳ Loading AI...';
+		  btn.disabled = true;
+	   } else {
+		  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><circle cx="15.5" cy="8.5" r="1.5"/><path d="M9 15c1.5 2 4.5 2 6 0"/></svg> Face Punch In';
+		  btn.disabled = !inZone;
+	   }
 	}
   }
 
@@ -912,8 +925,8 @@ input[type="file"].form-control { padding: 10px 14px; font-size: 12px; }
   }
 
   async function executePunch(type) {
-	const btnId = type === 'Check-In' ? (faceMatcher ? 'btn-face-checkin' : 'btn-checkin') : 'btn-checkout';
-	document.getElementById(btnId).disabled = true;
+	const btn = document.getElementById('btn-action');
+	btn.disabled = true;
 	try {
 	  await sbFetch('operix_attendance', {
 		method: 'POST', 
@@ -923,11 +936,8 @@ input[type="file"].form-control { padding: 10px 14px; font-size: 12px; }
 	  checkActiveShiftState();
 	  loadTimesheetData();
 	  calculatePayroll(); 
-	} catch(e) { showToast('Error recording punch.', 'error'); document.getElementById(btnId).disabled = false; }
+	} catch(e) { showToast('Error recording punch.', 'error'); btn.disabled = false; }
   }
-
-  async function hrClockIn() { executePunch('Check-In'); }
-  async function hrClockOut() { executePunch('Check-Out'); }
 
   // ==========================================
   // TIMESHEET
@@ -1189,11 +1199,20 @@ input[type="file"].form-control { padding: 10px 14px; font-size: 12px; }
 	reader.onload = async function(ev) {
 	  const base64 = ev.target.result.split(',')[1];
 	  try {
+		// Send base64 image to GAS to upload to Drive and potentially update Supabase
 		fetch(OPS_API, {
 		  method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
 		  body: JSON.stringify({ action: 'uploadPhoto', email: currentUser.email, filename: file.name, data: base64 })
 		});
 		
+		// Optimistically patch the accounts table with the base64 URL so Face ID works instantly
+		// If your GAS script handles this, this ensures immediate UI update.
+		await sbFetch(`accounts?id=eq.${currentUser.id}`, {
+		  method: 'PATCH',
+		  body: JSON.stringify({ photo_url: ev.target.result })
+		});
+
+		// Update UI
 		avatar.innerHTML = '';
 		avatar.style.backgroundImage = `url(${ev.target.result})`;
 		avatar.style.backgroundSize = 'cover';
@@ -1202,6 +1221,11 @@ input[type="file"].form-control { padding: 10px 14px; font-size: 12px; }
 		document.getElementById('nav-av').style.backgroundSize = 'cover';
 		
 		showToast('Photo uploaded successfully!', 'success');
+		
+		// Refresh currentUser photo_url state and re-init Face ID
+		currentUser.photo_url = ev.target.result;
+		initFaceID();
+
 	  } catch(err) {
 		avatar.innerHTML = oldHtml;
 		showToast('Failed to upload photo', 'error');
@@ -1218,16 +1242,16 @@ input[type="file"].form-control { padding: 10px 14px; font-size: 12px; }
 
   async function loadNotifications() {
 	try {
-	  // Find tasks assigned to this employee using Fuzzy Match logic
 	  let tasks = await sbFetch(`operix_tasks?select=*`).catch(()=>[]);
 	  if (!Array.isArray(tasks)) tasks = [];
 	  
-	  const myName = (currentUser.name || '').toLowerCase().trim();
+	  const myName = (currentUser.name || '').toLowerCase().replace(/[^a-z0-9]/gi, '');
 	  const myEmail = (currentUser.email || '').toLowerCase().trim();
 
 	  const myTasks = tasks.filter(t => {
-		const assignedTo = (t.assigned_to || '').toLowerCase().trim();
-		return (assignedTo === myName || assignedTo === myEmail) && 
+		const assignedToName = (t.assigned_to || '').toLowerCase().replace(/[^a-z0-9]/gi, '');
+		const assignedToEmail = (t.assigned_to || '').toLowerCase().trim();
+		return (assignedToName === myName || assignedToEmail === myEmail) && 
 			   t.status !== 'Completed' && t.status !== 'Done';
 	  });
 
